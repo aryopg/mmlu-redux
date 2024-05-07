@@ -1,0 +1,16 @@
+{
+    "editor.formatOnSave": true,
+    "[python]": {
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+        },
+        "editor.defaultFormatter": "ms-python.black-formatter"
+    },
+
+    "python.formatting.provider": "none",
+    "isort.args": [
+        "--profile",
+        "black"
+    ],
+    "editor.acceptSuggestionOnEnter": "on"
+}

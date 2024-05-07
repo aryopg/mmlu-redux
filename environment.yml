@@ -1,0 +1,32 @@
+name: fixing-mmlu
+channels:
+  - pytorch
+  - nvidia
+  - huggingface
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - huggingface_hub
+  - pytorch
+  - torchvision
+  - torchaudio
+  - cudatoolkit=11.4
+  - datasets
+  - evaluate
+  - pip
+  - python-dotenv
+  - wandb
+  - scikit-learn
+  - accelerate
+  - isort
+  - sentencepiece
+  - matplotlib
+  - black
+  - pydantic
+  - pandas
+  - tqdm
+  - pynvml
+  - transformers
+  - tokenizers
+  - openai
