@@ -11,6 +11,13 @@ We use:
 - TruthfulQA (mix)
 - MedQA (medical)
 - MathQA (math)
+
+The script will download the datasets locally to yout hf cache, process them and save a final dataset to output folder.
+
+
+Usage: 
+    python merge_clean_dataset.py <path_to_output_folder>
+
 """
 
 def main(output_folder):
@@ -27,7 +34,7 @@ def main(output_folder):
     processed_allenai_datasets = []
 
     def fix_allenai(example, original_dataset='unknown'):
-        example["answer"] = ord(example["answer"]) - ord('A')
+        example["answer"] = ord(example["answer"]) - ord('A') if not example["answer"].isnumeric() else int(example["answer"])-1 
         
         # we keep this just to be consistent with MMLU format
         example["subject"] = 'n/a'
@@ -171,4 +178,7 @@ def main(output_folder):
 
 
 if __name__ == '__main__':
-    main(sys.argv[1])
+    if len(sys.argv) < 2:
+        print("python merge_clean_dataset.py <path_to_output_folder>")
+    else:
+        main(sys.argv[1])
