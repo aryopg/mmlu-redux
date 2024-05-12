@@ -5,15 +5,20 @@ import numpy
 from numpy.random import choice
 import argparse
 
+global seed 
+global client
+global llm
+global call_llm
 
 """
 We first define the 5 corruption functions, then process the dataset by sampling a corruption function for each example. 
-Functions can be sampled with specific probability weights, see variables CORRUPTION_FUNCTIONS, CORRUPTION_PROBS.
+Functions can be sampled with specific probability weights, see the main function for more details.
 """
 
 
 ###########################################################################################################################################
-# Corruption functions
+# Wrong groundtruth
+# Strategy: randomly select a wrong answer choice and modify the example accordingly.
 ###########################################################################################################################################
 
 def wrong_grountruth(example):
@@ -41,6 +46,14 @@ def wrong_grountruth(example):
     return example
 
 
+
+###########################################################################################################################################
+# No correct answer
+# Strategy: replace the correct answer with 'every option listed'.
+# Other strategies (not implemented): remove the correct answer and do nothing.
+###########################################################################################################################################
+
+
 def no_correct_answer(example):
     """
     Corrupts the dataset by replacing the correct answer with "all of the above" and setting the answer to 'n/a'.
@@ -62,18 +75,30 @@ def no_correct_answer(example):
     return example
 
 
+###########################################################################################################################################
+# Multiple correct answers
+# Strategy: generate a new correct answer with the same meaning as the original correct answer. We use an llm for this. 
+# The new correct answer is inserted into the list of answer choices. The prompt to generate the new correct answer should be defined 
+# in the function generate_answer_with_same_meaning.
+# Other strategies (not implemented) : duplicate the correct answer.
+###########################################################################################################################################
 
 
-def multiple_correct_answers(example):
-    
-    def generate_answer_with_same_meaning(s):
+def generate_answer_with_same_meaning(s):
         # here we should call an llm to edit s
         # duplicate correct answer 
         # or rephrase without changing the semantics
         # for math: use fractions instead of floats and similar
-        return s
+        prompt = {"role": "system", "content": " You are a machine that given a sentence produces another sentence with the same meaning. If the input is just a word, you can return the word."}
+        question = {'role': 'user', 'content': f'{s}'}
 
+        return call_llm([prompt, question])
+
+
+def multiple_correct_answers(example):
+    
     example['corruptions'] = 'multiple_correct_answers'
+    example['llm for corruption'] = llm
     
     correct_answer = example['choices'][example['answer']]
     
@@ -82,27 +107,57 @@ def multiple_correct_answers(example):
     example['choices'].insert(choice(range(len(example['choices']))) , new_correct_answer)
     example['answer'] = example['choices'].index(correct_answer)
 
-    example['added_correct_answer'] = example['choices'].index(new_correct_answer)
+    example['added_correct_answer'] = new_correct_answer
 
     return example
+
+
+
+###########################################################################################################################################
+# Bad question clarity
+# Strategy: use an llm to generate a new question with the same meaning as the original question.
+###########################################################################################################################################
+
+def generate_question_with_same_meaning(s):
+        # here we should call an llm to edit s
+        # duplicate correct answer 
+        # or rephrase without changing the semantics
+        # for math: use fractions instead of floats and similar
+        prompt = None #TODO #{"role": "system", "content": "."}
+        question = {'role': 'user', 'content': f'{s}'}
+
+        return call_llm([prompt, question])
 
 def bad_question_clarity(example):
     # use mmlu as few shot examples for llm 
     raise NotImplementedError
 
+
+
+###########################################################################################################################################
+# Bad options clarity
+# Strategy: split a false option into 2 options. This is a common corruption in multiple choice questions, 
+# where a false option is split into two options during parsing. Here we apply this corruption randomly to one of the false options.
+# Other strategies (not implemented): call an LLM to corrupt the options.
+###########################################################################################################################################
+
 def bad_options_clarity(example):
     # split a false option into 2 options 
+    example['corruptions'] = 'bad_options_clarity'
+    correct_answer = example['choices'][example['answer']]
 
     wrong_answers_idx = set(range(len(example['choices']))) - {example['answer']}
     corrupted_choice_idx = choice(list(wrong_answers_idx))
     corrupted_choice = example['choices'].pop(corrupted_choice_idx)
     
     # split this randomly in the middle
+    middle = len(corrupted_choice) // 2
+    example['choices'].insert(corrupted_choice_idx, corrupted_choice[:middle])
+    example['choices'].insert(corrupted_choice_idx + 1, corrupted_choice[middle:])
+
+    example['answer'] = example['choices'].index(correct_answer)
     
-    example['corruptions'] = 'bad_options_clarity'
-    example['original_grountruth'] = example['answer']
-    example['answer'] = corrupted_choice
-    raise NotImplementedError
+    return example
 
 
 ###########################################################################################################################################
@@ -110,8 +165,8 @@ def bad_options_clarity(example):
 ###########################################################################################################################################
 
 
-# we sample a corruption function from here 
-# each corruption function has a corresponding probability mass
+# we sample a corruption function from here
+# each corruption function will have a corresponding probability mass
 CORRUPTION_FUNCTIONS = [wrong_grountruth, no_correct_answer, multiple_correct_answers, bad_question_clarity, bad_options_clarity]
 
 
@@ -127,6 +182,7 @@ def corrupt(example, corruption_probs=[0., 0., 0., 0., 0.]):
     """
 
     # pick a function to corrupt the example
+    # notice that you can simply set the probabilities to 0 to avoid applying a specific corruption
     corruption_function = choice(CORRUPTION_FUNCTIONS, replace=False, p=corruption_probs)
 
     # apply corruption
@@ -136,13 +192,13 @@ def corrupt(example, corruption_probs=[0., 0., 0., 0., 0.]):
 
     
 
-def main(original_dataset_path, corrupted_dataset_dir, hf_token=None, corruption_probs=[0, 0, 0, 0, 0], seed=42):
+def main(original_dataset_path, corrupted_dataset_dir, hf_token=None, corruption_probs=[0, 0, 0, 0, 0]):
 
     numpy.random.seed(seed)
 
     # load clean dataset
     print('Loading ***clean*** data from', original_dataset_path)
-    dataset_to_corrupt = load_dataset('alessiodevoto/purelabel', 'clean', hf_token=hf_token)
+    dataset_to_corrupt = load_dataset(original_dataset_path, 'clean', hf_token=hf_token)
 
     # apply corruptions
     print('Applying corruptions...')
@@ -158,26 +214,50 @@ def main(original_dataset_path, corrupted_dataset_dir, hf_token=None, corruption
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
+    # general settings
     parser.add_argument('--dataset', help='Hugging Face dataset name to corrupt', default='alessiodevoto/purelabel')
     parser.add_argument('--hf_token', help='Hugging Face token', default=None)
     parser.add_argument('--output_dir', help='Directory to save corrupted dataset', default='./corrupted_dataset')
+    parser.add_argument('--seed', help='Random seed', default=42)
     
+    # corruption probabilities
     parser.add_argument('--wrong_groundtruth', help='Probability of applying wrong_groundtruth corruption', default=0)
     parser.add_argument('--no_correct_answer', help='Probability of applying no_correct_answer corruption', default=0)
     parser.add_argument('--multiple_correct_answers', help='Probability of applying multiple_correct_answers corruption', default=0)
     parser.add_argument('--bad_question_clarity', help='Probability of applying bad_question_clarity corruption', default=0)
     parser.add_argument('--bad_options_clarity', help='Probability of applying bad_options_clarity corruption', default=0)
 
-    parser.add_argument('--openai_key', help='OpenAI API key', default=None)
-
-    parser.add_argument('--seed', help='Random seed', default=42)
+    # llm based corruptions
+    parser.add_argument('--llm', help='llm to be use for inference. This can be either a local address for TGI (e.g. http://127.0.0.1:8080) or an openai model (e.g. gpt-3.5-turbo)', default=None)
+    parser.add_argument('--openai_key', help='OpenAI key', default=False)
+    
+    
     args = parser.parse_args()
 
     # set corruption probabilities
     corruption_probs = [float(args.wrong_groundtruth), float(args.no_correct_answer), float(args.multiple_correct_answers), float(args.bad_question_clarity), float(args.bad_options_clarity)]
 
     if not any(corruption_probs):
-        raise ValueError('No corruption probabilities provided. Exiting...')
-        
+        raise ValueError('No corruption probabilities provided. Please specify at least one corruption probability.')
 
-    main(args.dataset, args.output_dir, args.hf_token, corruption_probs, args.seed)
+    
+    # this is very ugly but I am in a rush and it was the easiest way to allow for both huggingface and openai models
+    if args.llm:
+        print('Make sure you implemented your prompting methods for this llm based corruption.')   
+        print('You should define them in the corresponding functions, that are:\n -multiple_correct_answers \n -bad_question_clarity \n -bad_options_clarity')
+        llm = args.llm
+        if 'http' in args.llm:
+            from huggingface_hub import InferenceClient
+            client = InferenceClient(llm)
+            call_llm = lambda messages : client.chat_completion(messages, seed=seed).choices[0].message.content
+        elif 'gpt' in args.llm:
+            if not args.openai_key:
+                raise ValueError('You need to provide an OpenAI key to use an OpenAI model.')
+            from openai import OpenAI
+            client = OpenAI(api_key=args.openai_key)
+            call_llm = lambda messages : client.chat.completions.create(model=args.llm,messages=messages).choices[0].message.content
+            
+    
+    seed = int(args.seed)
+    
+    main(args.dataset, args.output_dir, args.hf_token, corruption_probs)
