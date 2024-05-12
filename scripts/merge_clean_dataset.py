@@ -97,15 +97,14 @@ def main(output_folder):
     math_qa = load_dataset('math_qa')
     math_qa = math_qa.remove_columns(['Rationale', 'annotated_formula', 'linear_formula', 'category']).rename_columns({'Problem': 'question', 'options': 'choices', 'correct':'answer'})
 
-    import re 
-    pattern = re.compile(r'\b[a-z]+\s*\)')
 
     def fix_mathqa(example):
         example['answer'] = ord(example['answer']) - ord('a')
         example['subject'] = 'n/a'
         example['original_dataset'] = 'math_qa'
-
-        example['choices'] = pattern.sub('', example['choices']).split(',')
+        idcs = [example['choices'].find(char + ' )') for char in 'abcde']
+        choices = [example['choices'][start+3:end].strip().strip(',') for start, end in zip(idcs, idcs[1:] + [len(example['choices'])])]
+        example['choices'] = choices
 
         return example
 
