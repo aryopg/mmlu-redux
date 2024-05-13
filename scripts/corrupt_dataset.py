@@ -1,6 +1,4 @@
 from datasets import load_dataset
-import sys, os 
-
 import numpy 
 from numpy.random import choice
 import argparse
@@ -123,14 +121,23 @@ def generate_question_with_same_meaning(s):
         # duplicate correct answer 
         # or rephrase without changing the semantics
         # for math: use fractions instead of floats and similar
-        prompt = None #TODO #{"role": "system", "content": "."}
+        prompt = {"role": "system", "content": " Given a question for a multiple choice test, produce another question with the same meaning, but more difficult to understand and somewhat ambiguous."}
         question = {'role': 'user', 'content': f'{s}'}
 
         return call_llm([prompt, question])
 
 def bad_question_clarity(example):
-    # use mmlu as few shot examples for llm 
-    raise NotImplementedError
+    example['corruptions'] = 'bad_question_clarity'
+    example['llm_for_corruption'] = llm
+    
+    initial_question = example['question']
+    
+    bad_question = generate_question_with_same_meaning(initial_question)
+
+    example['question'] = bad_question
+    example['original_question'] = initial_question
+    
+    return example
 
 
 
@@ -228,36 +235,42 @@ if __name__ == "__main__":
     parser.add_argument('--bad_options_clarity', help='Probability of applying bad_options_clarity corruption', default=0)
 
     # llm based corruptions
-    parser.add_argument('--llm', help='llm to be use for inference. This can be either a local address for TGI (e.g. http://127.0.0.1:8080) or an openai model (e.g. gpt-3.5-turbo)', default=None)
+    parser.add_argument('--llm', help='llm to be use for corruption. This can be either a local address for HF TGI (e.g. http://127.0.0.1:8080) or an openai model (e.g. gpt-3.5-turbo)', default=None)
     parser.add_argument('--openai_key', help='OpenAI key', default=False)
     
     
     args = parser.parse_args()
 
     # set corruption probabilities
+    seed = int(args.seed)
     corruption_probs = [float(args.wrong_groundtruth), float(args.no_correct_answer), float(args.multiple_correct_answers), float(args.bad_question_clarity), float(args.bad_options_clarity)]
 
     if not any(corruption_probs):
         raise ValueError('No corruption probabilities provided. Please specify at least one corruption probability.')
 
     
-    # this is very ugly but I am in a rush and it was the easiest way to allow for both huggingface and openai models
+    # WARNING: this is very ugly but I am in a rush and it was the easiest way to allow for both huggingface and openai models
     if args.llm:
         print('Make sure you implemented your prompting methods for this llm based corruption.')   
         print('You should define them in the corresponding functions, that are:\n -multiple_correct_answers \n -bad_question_clarity \n -bad_options_clarity')
-        llm = args.llm
+         
         if 'http' in args.llm:
             from huggingface_hub import InferenceClient
-            client = InferenceClient(llm)
-            call_llm = lambda messages : client.chat_completion(messages, seed=seed).choices[0].message.content
+            client = InferenceClient(args.llm)
+            def hf_inference(messages):
+                return client.chat_completion(messages, seed=seed).choices[0].message.content
+            call_llm = hf_inference
+            llm = 'llama-3-8b' # TODO change this to the actual model name
         elif 'gpt' in args.llm:
             if not args.openai_key:
                 raise ValueError('You need to provide an OpenAI key to use an OpenAI model.')
             from openai import OpenAI
             client = OpenAI(api_key=args.openai_key)
-            call_llm = lambda messages : client.chat.completions.create(model=args.llm,messages=messages).choices[0].message.content
+            def openai_inference(messages):
+                return client.chat.completions.create(model=args.llm, messages=messages).choices[0].message.content
+            call_llm = openai_inference
+            llm = args.llm
             
-    
-    seed = int(args.seed)
+
     
     main(args.dataset, args.output_dir, args.hf_token, corruption_probs)
