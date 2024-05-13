@@ -274,3 +274,10 @@ if __name__ == "__main__":
 
     
     main(args.dataset, args.output_dir, args.hf_token, corruption_probs)
+
+
+# Example usage for huggingface TGI:
+# python corrupt_dataset.py --dataset alessiodevoto/labelchaos --output_dir ./corrupted_dataset --seed 42 --multiple_correct_answers --llm http://127.0.0.1:8080 --hf_token <your_hf_token>
+
+# Example usage for OpenAI:
+# python corrupt_dataset.py --dataset alessiodevoto/labelchaos --output_dir ./corrupted_dataset --seed 42 --multiple_correct_answers 1 --llm gpt-3.5-turbo --openai_key <your_openai_key>
