@@ -1,15 +1,9 @@
-
 from numpy.random import choice
-
-global llm
-
-import os
 
 TEST_NUM_SAMPLES = 100
 
 
-def check_llm_already_defined():
-
+def check_llm_already_defined(llm):
     if isinstance(llm, dict):
         if 'type' in llm and 'model' in llm:
             return True
@@ -17,6 +11,7 @@ def check_llm_already_defined():
             raise ValueError('llm global variable is missing \'type\' and \'model\' fields')
     else:
         raise ValueError('llm global variable must be defined with llm parameters')
+
 
 ###########################################################################################################################################
 # Wrong groundtruth
@@ -85,7 +80,7 @@ def no_correct_answer(example):
 ###########################################################################################################################################
 
 
-def generate_answer_with_same_meaning(s):
+def generate_answer_with_same_meaning(s, llm):
     # here we should call an llm to edit s
     # duplicate correct answer
     # or rephrase without changing the semantics
@@ -97,15 +92,15 @@ def generate_answer_with_same_meaning(s):
     return llm['llm_call']([prompt, question])
 
 
-def multiple_correct_answers(example):
-    check_llm_already_defined()
+def multiple_correct_answers(example, llm):
+    check_llm_already_defined(llm)
 
     example['corruptions'] = 'multiple_correct_answers'
     example['llm for corruption'] = llm['model']
 
     correct_answer = example['choices'][example['answer']]
 
-    new_correct_answer = generate_answer_with_same_meaning(correct_answer)
+    new_correct_answer = generate_answer_with_same_meaning(correct_answer, llm)
 
     example['choices'].insert(choice(range(len(example['choices']))), new_correct_answer)
     example['answer'] = example['choices'].index(correct_answer)
@@ -120,7 +115,7 @@ def multiple_correct_answers(example):
 # Strategy: use an llm to generate a new question with the same meaning as the original question.
 ###########################################################################################################################################
 
-def generate_question_with_same_meaning(s):
+def generate_question_with_same_meaning(s, llm):
     # here we should call an llm to edit s
     # duplicate correct answer
     # or rephrase without changing the semantics
@@ -153,22 +148,22 @@ def generate_question_with_same_meaning(s):
                     "The outcome must be meaningful but less clear than the input."}
     ]
 
-    prompt = choice(prompts, p=[0.25, 0.25, 0.25, 0.25])
-    
+    prompt = choice(prompts, p=[0.1, 0.3, 0.3, 0.3])
+
     question = {'role': 'user', 'content': f'{s}'}
 
     return llm['llm_call']([prompt, question])
 
 
-def bad_question_clarity(example):
-    check_llm_already_defined()
+def bad_question_clarity(example, llm):
+    check_llm_already_defined(llm)
 
     example['corruptions'] = 'bad_question_clarity'
     example['llm_for_corruption'] = llm['model']
 
     initial_question = example['question']
 
-    bad_question = generate_question_with_same_meaning(initial_question)
+    bad_question = generate_question_with_same_meaning(initial_question, llm)
 
     example['question'] = bad_question
     example['original_question'] = initial_question

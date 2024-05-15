@@ -1,15 +1,13 @@
+import src.corruptions.corruptors as corruptors
+from src import constants
 from datasets import load_dataset
 import numpy
 from numpy.random import choice
-import argparse
-
-global seed
-global client
-global llm
-global call_llm
-
 import os
-import src.corruptions.corruptors as corruptors
+from dotenv import load_dotenv
+import time
+
+load_dotenv(constants.ENV_PATH)
 
 
 class Corruptor:
@@ -19,24 +17,22 @@ class Corruptor:
                    'bad_options_clarity',
                    'bad_questions_clarity']
 
-    TEST_NUM_SAMPLES = 100
-
-    def __init__(self, probabilities, random_seed, llm=None, hf_token=None):
+    def __init__(self, probabilities, random_seed, llm=None):
         self._corruption_probabilities = None
         self.corruption_probabilities = probabilities
 
         self.random_seed = random_seed
-
         self.llm = self.set_llm(llm, random_seed)
-        corruptors.llm = self.llm
 
-        self.wrong_groundtruth = corruptors.wrong_grountruth
-        self.no_correct_answer = corruptors.no_correct_answer
-        self.multiple_correct_answers = corruptors.multiple_correct_answers
-        self.bad_options_clarity = corruptors.bad_options_clarity
-        self.bad_question_clarity = corruptors.bad_question_clarity
+        self.corruption_methods = {
+            'wrong_groundtruth': lambda x: corruptors.wrong_grountruth(x),
+            'no_correct_answer': lambda x: corruptors.no_correct_answer(x),
+            'multiple_correct_answers': lambda x: corruptors.multiple_correct_answers(x, self.llm),
+            'bad_options_clarity': lambda x: corruptors.bad_options_clarity(x),
+            'bad_question_clarity': lambda x: corruptors.bad_question_clarity(x, self.llm)
+        }
 
-        self.hf_token = hf_token
+        self.hf_token = os.getenv('HF_DOWNLOAD_TOKEN')
 
     @property
     def corruption_probabilities(self):
@@ -62,29 +58,24 @@ class Corruptor:
         llm = dict(llm)
         if llm:
             assert isinstance(llm, dict), 'LLM configuration should be formatted as a dictionary'
-            assert 'model' in llm, 'If you want to use an llm you have to define a model in the llm configuration'
             assert 'type' in llm, 'If you want to use an llm you have to define an llm type in the configuration file'
 
             if llm['type'] == 'http':
+
                 from huggingface_hub import InferenceClient
-                client = InferenceClient(llm['model'])
+                client = InferenceClient(**llm['configs'])
 
-                def hf_inference(messages):
-                    return client.chat_completion(messages, seed=random_seed).choices[0].message.content
+                llm['llm_call'] = \
+                    lambda x: client.chat_completion(x, seed=random_seed).choices[0].message.content
 
-                llm['call_llm'] = hf_inference
-
-            elif llm['type'] == 'gpt':
-                if not 'openai_key' in llm:
+            elif llm['type'] == 'openai':
+                if os.getenv('OPENAI_API_KEY') is None:
                     raise ValueError('You need to provide an OpenAI key to use an OpenAI model.')
                 from openai import OpenAI
-                client = OpenAI(api_key=llm['openai_key'])
-
-                def openai_inference(messages):
-                    return client.chat.completions.create(model=llm['model'], messages=messages).choices[
-                        0].message.content
-
-                llm['llm_call'] = openai_inference
+                client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+                completion_config = llm['configs'].get('completion')
+                llm['llm_call'] = lambda x: \
+                    client.chat.completions.create(messages=x, **completion_config).choices[0].message.content
 
         return llm
 
@@ -104,12 +95,24 @@ class Corruptor:
         # notice that you can simply set the probabilities to 0 to avoid applying a specific corruption
         probabilities = [self.corruption_probabilities[corr] for corr in self.CORRUPTIONS]
         corruption_type = choice(self.CORRUPTIONS, replace=False, p=probabilities)
-        corruption_function = self.__getattribute__(corruption_type)
+        corruption_function = self.corruption_methods[corruption_type]
 
+        MAX_ATTEMPTS = 5
+        SLEEP_PENALTY = 2
         # apply corruption
-        example = corruption_function(example)
+        for tempts in range(MAX_ATTEMPTS):
+            try:
+                example = corruption_function(example)
+                return example
+            except Exception as e:
+                print(f'An exeption {e} found for this sample:\n'
+                      f'{example}')
+                print(f'Trying again. Attempt n. {tempts+1} over {MAX_ATTEMPTS} possible attempts')
+                time.sleep(tempts*SLEEP_PENALTY)
 
-        return example
+        print('Too many attempts. Skipping sample.'
+              f'Sample: {example}')
+        return None
 
     def corrupt_dataset(self, dataset_path, output_dir, test_flag=False):
 
@@ -119,11 +122,11 @@ class Corruptor:
 
         # load clean dataset
         print('Loading ***clean*** data from', dataset_path)
-        dataset_to_corrupt = load_dataset(dataset_path, 'clean', hf_token=self.hf_token)
+        dataset_to_corrupt = load_dataset(dataset_path, 'clean', token=self.hf_token)
 
         if test_flag:
             print('Corruption set in test mode')
-            dataset_to_corrupt = dataset_to_corrupt['train'].select(range(self.TEST_NUM_SAMPLES))
+            dataset_to_corrupt = dataset_to_corrupt['train'].select(range(constants.TEST_NUM_SAMPLES))
             output_path = os.path.join(test_dir, 'clean_test.csv')
             print('Saving uncorrupted test dataset to ', output_path)
             dataset_to_corrupt.to_csv(output_path)
@@ -138,9 +141,3 @@ class Corruptor:
 
         print('Saving corrupted dataset to ', output_dir)
         corrupted_dataset.save_to_disk(output_dir)
-
-# load the dataset
-
-# apply corruption strategy to every single row
-
-# store the results
