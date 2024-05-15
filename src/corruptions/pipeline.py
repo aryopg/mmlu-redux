@@ -29,7 +29,7 @@ class Corruptor:
             'no_correct_answer': lambda x: corruptors.no_correct_answer(x),
             'multiple_correct_answers': lambda x: corruptors.multiple_correct_answers(x, self.llm),
             'bad_options_clarity': lambda x: corruptors.bad_options_clarity(x),
-            'bad_question_clarity': lambda x: corruptors.bad_question_clarity(x, self.llm)
+            'bad_questions_clarity': lambda x: corruptors.bad_question_clarity(x, self.llm)
         }
 
         self.hf_token = os.getenv('HF_DOWNLOAD_TOKEN')
@@ -68,6 +68,8 @@ class Corruptor:
                 llm['llm_call'] = \
                     lambda x: client.chat_completion(x, seed=random_seed).choices[0].message.content
 
+                llm['model'] = llm['configs']['model']
+
             elif llm['type'] == 'openai':
                 if os.getenv('OPENAI_API_KEY') is None:
                     raise ValueError('You need to provide an OpenAI key to use an OpenAI model.')
@@ -76,6 +78,7 @@ class Corruptor:
                 completion_config = llm['configs'].get('completion')
                 llm['llm_call'] = lambda x: \
                     client.chat.completions.create(messages=x, **completion_config).choices[0].message.content
+                llm['model'] = completion_config['model']
 
         return llm
 
@@ -114,15 +117,15 @@ class Corruptor:
               f'Sample: {example}')
         return None
 
-    def corrupt_dataset(self, dataset_path, output_dir, test_flag=False):
+    def corrupt_dataset(self, dataset_path, dataset_name, output_dir, test_flag=False):
 
         test_dir = './test'
 
         numpy.random.seed(self.random_seed)
 
         # load clean dataset
-        print('Loading ***clean*** data from', dataset_path)
-        dataset_to_corrupt = load_dataset(dataset_path, 'clean', token=self.hf_token)
+        print(f'Loading ***{dataset_name}*** data from', dataset_path)
+        dataset_to_corrupt = load_dataset(dataset_path, dataset_name, token=self.hf_token)
 
         if test_flag:
             print('Corruption set in test mode')

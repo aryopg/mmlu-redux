@@ -3,16 +3,6 @@ from numpy.random import choice
 TEST_NUM_SAMPLES = 100
 
 
-def check_llm_already_defined(llm):
-    if isinstance(llm, dict):
-        if 'type' in llm and 'model' in llm:
-            return True
-        else:
-            raise ValueError('llm global variable is missing \'type\' and \'model\' fields')
-    else:
-        raise ValueError('llm global variable must be defined with llm parameters')
-
-
 ###########################################################################################################################################
 # Wrong groundtruth
 # Strategy: randomly select a wrong answer choice and modify the example accordingly.
@@ -93,7 +83,6 @@ def generate_answer_with_same_meaning(s, llm):
 
 
 def multiple_correct_answers(example, llm):
-    check_llm_already_defined(llm)
 
     example['corruptions'] = 'multiple_correct_answers'
     example['llm for corruption'] = llm['model']
@@ -156,7 +145,6 @@ def generate_question_with_same_meaning(s, llm):
 
 
 def bad_question_clarity(example, llm):
-    check_llm_already_defined(llm)
 
     example['corruptions'] = 'bad_question_clarity'
     example['llm_for_corruption'] = llm['model']

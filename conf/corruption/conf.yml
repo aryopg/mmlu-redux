@@ -1,9 +1,9 @@
 probabilities: # probability of each kind of perturbation to happen (at sample level)
-  wrong_groundtruth: 1
+  wrong_groundtruth: 0
   no_correct_answer: 0
   multiple_correct_answers: 0
   bad_options_clarity: 0
-  bad_questions_clarity: 0
+  bad_questions_clarity: 1
 llm:
   type: openai # could be http or openai
   configs:
