@@ -8,6 +8,10 @@ global client
 global llm
 global call_llm
 
+import os
+
+TEST_NUM_SAMPLES = 100
+
 """
 We first define the 5 corruption functions, then process the dataset by sampling a corruption function for each example. 
 Functions can be sampled with specific probability weights, see the main function for more details.
@@ -102,7 +106,7 @@ def multiple_correct_answers(example):
     
     new_correct_answer = generate_answer_with_same_meaning(correct_answer)
 
-    example['choices'].insert(choice(range(len(example['choices']))) , new_correct_answer)
+    example['choices'].insert(choice(range(len(example['choices']))), new_correct_answer)
     example['answer'] = example['choices'].index(correct_answer)
 
     example['added_correct_answer'] = new_correct_answer
@@ -121,7 +125,7 @@ def generate_question_with_same_meaning(s):
         # duplicate correct answer 
         # or rephrase without changing the semantics
         # for math: use fractions instead of floats and similar
-        prompt = {"role": "system", "content": " Given a question for a multiple choice test, produce another question with the same meaning, but more difficult to understand and somewhat ambiguous."}
+        prompt = {"role": "system", "content": "ou are a machine that given a question from a multiple-choice question produces another question with the same meaning but it is less clear. You can make it less clear by removing context information that is necessary for answering, adding a reference to external content, or a reference to another question. The outcome must be meaningful but less clear than the input."}
         question = {'role': 'user', 'content': f'{s}'}
 
         return call_llm([prompt, question])
@@ -197,9 +201,8 @@ def corrupt(example, corruption_probs=[0., 0., 0., 0., 0.]):
 
     return example
 
-    
 
-def main(original_dataset_path, corrupted_dataset_dir, hf_token=None, corruption_probs=[0, 0, 0, 0, 0]):
+def main(original_dataset_path, corrupted_dataset_dir, hf_token=None, corruption_probs=[0, 0, 0, 0, 0], test_flag=False):
 
     numpy.random.seed(seed)
 
@@ -207,10 +210,21 @@ def main(original_dataset_path, corrupted_dataset_dir, hf_token=None, corruption
     print('Loading ***clean*** data from', original_dataset_path)
     dataset_to_corrupt = load_dataset(original_dataset_path, 'clean', hf_token=hf_token)
 
+    if test_flag:
+        dataset_to_corrupt = dataset_to_corrupt['train'].select(range(TEST_NUM_SAMPLES))
+        output_path = os.path.join(corrupted_dataset_dir, 'clean_test.csv')
+        print('Saving uncorrupted test dataset to ', output_path)
+        dataset_to_corrupt.to_csv(output_path)
+
     # apply corruptions
     print('Applying corruptions...')
     print('Corruption probabilities:', list(zip(['wrong_grountruth', 'no_correct_answer', 'multiple_correct_answers', 'bad_question_clarity', 'bad_options_clarity'], corruption_probs)))
     corrupted_dataset = dataset_to_corrupt.map(corrupt, fn_kwargs={'corruption_probs': corruption_probs})
+
+    if test_flag:
+        corrupted_dataset_dir = './test'
+        print('Saving corrupted test dataset to ', corrupted_dataset_dir)
+        corrupted_dataset.to_csv(os.path.join(corrupted_dataset_dir, 'corruption_test.csv'))
 
     print('Saving corrupted dataset to ', corrupted_dataset_dir)
     corrupted_dataset.save_to_disk(corrupted_dataset_dir)
@@ -226,18 +240,20 @@ if __name__ == "__main__":
     parser.add_argument('--hf_token', help='Hugging Face token', default=None)
     parser.add_argument('--output_dir', help='Directory to save corrupted dataset', default='./corrupted_dataset')
     parser.add_argument('--seed', help='Random seed', default=42)
-    
+
+    parser.add_argument('--test', help='Run in test mode. In this mode only a limited number of samples is computed.'
+                                       'The number of values is globally defined ', default=True,  action=argparse.BooleanOptionalAction)
+
     # corruption probabilities
     parser.add_argument('--wrong_groundtruth', help='Probability of applying wrong_groundtruth corruption', default=0)
     parser.add_argument('--no_correct_answer', help='Probability of applying no_correct_answer corruption', default=0)
     parser.add_argument('--multiple_correct_answers', help='Probability of applying multiple_correct_answers corruption', default=0)
-    parser.add_argument('--bad_question_clarity', help='Probability of applying bad_question_clarity corruption', default=0)
+    parser.add_argument('--bad_question_clarity', help='Probability of applying bad_question_clarity corruption', default=1)
     parser.add_argument('--bad_options_clarity', help='Probability of applying bad_options_clarity corruption', default=0)
 
     # llm based corruptions
     parser.add_argument('--llm', help='llm to be use for corruption. This can be either a local address for HF TGI (e.g. http://127.0.0.1:8080) or an openai model (e.g. gpt-3.5-turbo)', default=None)
     parser.add_argument('--openai_key', help='OpenAI key', default=False)
-    
     
     args = parser.parse_args()
 
@@ -273,7 +289,7 @@ if __name__ == "__main__":
             
 
     
-    main(args.dataset, args.output_dir, args.hf_token, corruption_probs)
+    main(args.dataset, args.output_dir, args.hf_token, corruption_probs, args.test)
 
 
 # Example usage for huggingface TGI:
