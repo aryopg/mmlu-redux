@@ -1,5 +1,5 @@
 from src.corruptions.pipeline import Corruptor
-from src.constants import CORRUPTED_CONFIGURATION_PATH, CORRUPTED_CONFIGURATION_DIR, RANDOM_SEED, DATASET_PATH
+from src.constants import CORRUPTED_CONFIGURATION_PATH, CORRUPTED_OUTPUT_DIRECTORY, RANDOM_SEED, DATASET_PATH
 
 import argparse
 import yaml
@@ -10,7 +10,7 @@ if __name__ == "__main__":
 
     # general settings
     parser.add_argument('--dataset', help='Hugging Face dataset name to corrupt', default=DATASET_PATH)
-    parser.add_argument('--output_dir', help='Directory to save corrupted dataset', default=CORRUPTED_CONFIGURATION_DIR)
+    parser.add_argument('--output_dir', help='Directory to save corrupted dataset', default=CORRUPTED_OUTPUT_DIRECTORY)
 
     with open(CORRUPTED_CONFIGURATION_PATH, 'r') as file:
         config = yaml.safe_load(file)
