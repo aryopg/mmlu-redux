@@ -13,9 +13,6 @@ load_dotenv(".env")
 import pandas as pd
 from datasets import load_dataset
 from openai import OpenAI
-from transformers import LlamaForCausalLM, LlamaTokenizerFast, AutoTokenizer, AutoModelForCausalLM, pipeline
-import anthropic
-from huggingface_hub import login
 
 INSTRUCTION = (
     "# Task:\n"
@@ -34,17 +31,17 @@ INSTRUCTION = (
     "4. Ground Truth Answer Evaluation: Is the ground truth answer correct?\n"
     "4.1. If Yes, classify as Correct.\n"
     "4.2. If No, classify as Wrong Groundtruth.\n"
-    "Provide your assessment in JSON format with keys 'Question Presentation', 'MC Options Presentation', 'Answer Evaluation', 'Ground Truth Answer Evaluation', 'Classification'. "
-    "The 'classification' is either Correct, Wrong Groundtruth, No Correct Answer, Multiple Correct Answer, Bad Options Clarity, or Bad Question Clarity.\n\n"
+    "Provide your assessment in JSON format with keys 'Question Presentation', 'MC Options Presentation', 'Answer Evaluation', 'Ground Truth Answer Evaluation', 'Classification', 'Answer'. "
+    "The 'classification' is either Correct, Wrong Groundtruth, No Correct Answer, Multiple Correct Answer, Bad Options Clarity, or Bad Question Clarity. "
+    "If you classify the issue as Wrong Groundtruth, provide your own answer to the question with key 'answer', else return empty string in key 'answer'.\n\n"
     "# Example Answer:\n"
-    "{'Question Presentation': 'OK', 'MC Options Presentation': 'OK', 'Answer Evaluation': 'One', 'Ground Truth Answer Evaluation': 'Correct', 'classification': 'Correct'}"
+    "{'Question Presentation': 'OK', 'MC Options Presentation': 'OK', 'Answer Evaluation': 'One', 'Ground Truth Answer Evaluation': 'Wrong Groundtruth', 'classification': 'Wrong Groundtruth', 'answer': 'C'}"
 )
 
 CHOICES_DELIMITER = "\n"
 QUESTION_VERBALISER = (
     "Question: {question}\nChoices:\n{choices}\nGround Truth Answer: {answer}\nYour Response: "
 )
-
 
 def verbaliser(question, choices, answer):
     verbalised_choices = CHOICES_DELIMITER.join(
@@ -53,7 +50,6 @@ def verbaliser(question, choices, answer):
     return QUESTION_VERBALISER.format(
         question=question, choices=verbalised_choices, answer=choices[answer]
     )
-
 
 def predict_gpt3(client, model_name, prompt, generation_configs):
     response = client.chat.completions.create(
@@ -68,96 +64,71 @@ def predict_gpt3(client, model_name, prompt, generation_configs):
 
     return prediction
 
-
-def predict_llama(model, tokenizer, prompt, max_new_tokens):
-    input_ids = tokenizer(prompt, return_tensors="pt").input_ids
-    output = model.generate(input_ids, max_new_tokens=max_new_tokens, num_return_sequences=1)
-    prediction = tokenizer.decode(output[0], skip_special_tokens=True)
-    return prediction
-
-
-def predict_claude(client, prompt):
-    response = client.completions.create(
-        model="claude-3-opus-20240229",
-        prompt=prompt,
-        max_tokens_to_sample=200,
-        stop_sequences=["\n"]
-    )
-    prediction = response.completion
-    return prediction
-
-
 def compute_metrics(pred_df):
     exact_match = (pred_df["predicted_error_type"] == pred_df["error_type"]).mean()
     return {"exact_match": exact_match}
 
-
 def main(args):
     dataset = load_dataset("edinburgh-dawg/mini-mmlu", args.config, split="test")
 
-    if args.model_type == "gpt3":
-        openai_client = OpenAI(
-            api_key=os.getenv("OPENAI_API_KEY", ""),
-        )
-        gpt3_model_name = "gpt-3.5-turbo"
-        gpt3_generation_configs = {
-            "temperature": 0.0,
-            "top_p": 1,
-            "frequency_penalty": 0,
-            "presence_penalty": 0,
-            "max_tokens": 200,
-        }
-    elif args.model_type == "llama":
-        login("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")
-        llm_path = "meta-llama/Meta-Llama-3-8B"
-        llama_tokenizer = LlamaTokenizerFast.from_pretrained(llm_path)
-        llama_model = LlamaForCausalLM.from_pretrained(llm_path)
-        llama_max_new_tokens = 200
-    elif args.model_type == "claude":
-        claude_client = anthropic.Anthropic(
-            api_key=os.getenv("ANTHROPIC_API_KEY", ""),
-        )
-    else:
-        raise ValueError("Invalid model type. Choose from 'gpt3', 'llama', or 'claude'.")
+    openai_client = OpenAI(
+        api_key=os.getenv("OPENAI_API_KEY", ""),
+    )
+    gpt3_model_name = "gpt-3.5-turbo"
+    gpt3_generation_configs = {
+        "temperature": 0.0,
+        "top_p": 1,
+        "frequency_penalty": 0,
+        "presence_penalty": 0,
+        "max_tokens": 200,
+    }
 
-    pred_df = pd.DataFrame(columns=["question", "choices", "answer", "error_type", "predicted_error_type"])
+    pred_df = pd.DataFrame(columns=["question", "choices", "answer", "error_type", "model_answer", "predicted_error_type", "predicted_answer"])
+
     for i in range(len(dataset)):
-        verbalised_text = verbaliser(
-            dataset[i]["question"], dataset[i]["choices"], dataset[i]["answer"]
-        )
+        question = dataset[i]["question"]
+        choices = eval(dataset[i]["choices"]) 
+        answer = dataset[i]["answer"]
         
-        if args.model_type == "gpt3":
-            prediction = predict_gpt3(openai_client, gpt3_model_name, verbalised_text, gpt3_generation_configs)
-        elif args.model_type == "llama":
-            prediction = predict_llama(llama_model, llama_tokenizer, INSTRUCTION + "\n\n" + verbalised_text, llama_max_new_tokens)
-        elif args.model_type == "claude":
-            prediction = predict_claude(claude_client, INSTRUCTION + "\n\n" + verbalised_text)
+        verbalised_text = verbaliser(question, choices, answer)
+        
+        prediction = predict_gpt3(openai_client, gpt3_model_name, verbalised_text, gpt3_generation_configs)
         
         try:
-            prediction_json = json.loads(prediction)
-            predicted_error_type = prediction_json["classification"]
-        except (json.JSONDecodeError, KeyError):
+            model_answer = prediction.split("Your Response: ")[-1].strip()
+            if model_answer.startswith("{") and model_answer.endswith("}"):
+                prediction_json = json.loads(model_answer)
+                predicted_error_type = prediction_json["Classification"]
+                predicted_answer = prediction_json.get("Answer", "")
+            else:
+                model_answer = prediction
+                predicted_error_type = "Invalid Prediction"
+                predicted_answer = ""
+        except (json.JSONDecodeError, KeyError, IndexError) as e:
+            model_answer = prediction
             predicted_error_type = "Invalid Prediction"
+            predicted_answer = ""
+            print(f"Error parsing prediction for instance {i}: {str(e)}")
+            print(f"Model answer: {model_answer}")
         
         pred_df.loc[i] = [
-            dataset[i]["question"],
-            dataset[i]["choices"],
-            dataset[i]["answer"],
+            question,
+            choices,
+            answer,
             dataset[i]["error_type"],
+            model_answer,
             predicted_error_type,
+            predicted_answer
         ]
     
     metrics = compute_metrics(pred_df)
-    print(f"Metrics for {args.model_type}:")
+    print(f"Metrics for {args.config}:")
     print(metrics)
 
-    pred_df.to_csv(f"mmlu_groundtruth_correctness_{args.model_type}_{args.config}.csv", index=False)
-
+    pred_df.to_csv(f"mmlu_groundtruth_correctnessss_{args.config}.csv", index=False)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Evaluate models on Mini-MMLU dataset")
-    parser.add_argument("--model_type", type=str, required=True, choices=["gpt3", "llama", "claude"],
-                        help="Type of model to use for prediction")
     parser.add_argument("--config", type=str, required=True,
                         help="Configuration of the mini-mmlu dataset to use")
     args = parser.parse_args()
