@@ -216,13 +216,12 @@ def bad_options_clarity(example):
         if ' ' in option:
             l = option.split(' ')
             # to make it more difficult, we return the second chunk
-            return l[1] if len(l) > 1 else l[0]
+            return ' '.join(l[1:]) if len(l) > 1 else l[0]
         else:
             middle = len(option) // 2
             return option[:middle]
 
     example['corruptions'] = 'bad_options_clarity'
-    correct_answer = example['choices'][example['answer']]
 
     wrong_answers_idcs = set(range(len(example['choices']))) - {example['answer']}
     corrupted_choice_idx = choice(list(wrong_answers_idcs))

@@ -6,6 +6,7 @@ from numpy.random import choice
 import os
 from dotenv import load_dotenv
 import time
+from datetime import datetime
 
 load_dotenv(constants.ENV_PATH)
 
@@ -142,5 +143,6 @@ class Corruptor:
             print('Saving corrupted test dataset to ', output_path)
             corrupted_dataset.to_csv(os.path.join(test_dir, 'corruption_test.csv'))
 
-        print('Saving corrupted dataset to ', output_dir)
-        corrupted_dataset.save_to_disk(output_dir)
+        final_output_dir = os.path.join(output_dir, f'{datetime.now().strftime("%Y_%m_%d_%H_%M_%S")}')
+        print('Saving corrupted dataset to ', final_output_dir)
+        corrupted_dataset.save_to_disk(final_output_dir)
