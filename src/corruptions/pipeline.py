@@ -33,7 +33,7 @@ class Corruptor:
             'bad_questions_clarity': lambda x: corruptors.bad_question_clarity(x, self.llm)
         }
 
-        self.hf_token = os.getenv('HF_DOWNLOAD_TOKEN')
+        self.hf_token = os.getenv('HF_READ_TOKEN')
 
     @property
     def corruption_probabilities(self):
