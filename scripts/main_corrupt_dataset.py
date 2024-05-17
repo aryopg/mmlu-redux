@@ -10,7 +10,7 @@ if __name__ == "__main__":
 
     # general settings
     parser.add_argument('--dataset', help='Hugging Face dataset path to corrupt', default=DATASET_PATH)
-    parser.add_argument('--name', help='Hugging Face dataset name to corrupt', default='clean_subsampled')
+    parser.add_argument('--name', help='Hugging Face dataset name to corrupt', default='clean')
     parser.add_argument('--output_dir', help='Directory to save corrupted dataset', default=CORRUPTED_OUTPUT_DIRECTORY)
 
     with open(CORRUPTED_CONFIGURATION_PATH, 'r') as file:
