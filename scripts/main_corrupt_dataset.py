@@ -1,3 +1,6 @@
+import sys, os
+sys.path.append(os.getcwd())
+
 from src.corruptions.pipeline import Corruptor
 from src.constants import CORRUPTED_CONFIGURATION_PATH, CORRUPTED_OUTPUT_DIRECTORY, RANDOM_SEED, DATASET_PATH
 
