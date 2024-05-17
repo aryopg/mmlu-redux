@@ -42,6 +42,7 @@ INSTRUCTION = (
     "4.2. If No, classify as Wrong Groundtruth.\n"
     "Provide your assessment in JSON format with keys 'Question Presentation', 'MC Options Presentation', 'Answer Evaluation', 'Ground Truth Answer Evaluation', 'Classification'. "
     "The 'classification' is either OK, Wrong Groundtruth, No Correct Answer, Multiple Correct Answer, Bad Options Clarity, or Bad Question Clarity.\n\n"
+    "FOLLOW THE EXACT EXAMPLE ANSWER FORMAT WITHOUT PROVIDING EXPLANATION"
     "# Example Answer:\n"
     "{\"Question Presentation\": \"OK\", \"MC Options Presentation\": \"OK\", \"Answer Evaluation\": \"One\", \"Ground Truth Answer Evaluation\": \"Correct\", \"classification\": \"ok\"}"
 )
@@ -132,7 +133,7 @@ def main(args):
 
     if args.model_type == "gpt3":
         openai_client = OpenAI(
-            api_key=os.getenv("OPENAI_API_KEY", ""),
+            api_key=os.getenv("OPENAI_API_KEY", "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"),
         )
         gpt3_model_name = "gpt-4-turbo"
         gpt3_generation_configs = {
@@ -159,6 +160,7 @@ def main(args):
     pred_df = pd.DataFrame(columns=["question", "choices", "answer", "error_type", "model_answer", "predicted_error_type"])
 
     for i in tqdm(range(len(dataset))):
+    # for i in tqdm(range(3)):
         question = dataset[i]["question"]
         choices = eval(dataset[i]["choices"]) 
         answer = dataset[i]["answer"]
@@ -177,13 +179,13 @@ def main(args):
         
         try:
             model_answer = prediction
-            #print("model_answer_v1", model_answer)
+            print("model_answer_v1", model_answer)
             if model_answer.startswith("{") and model_answer.endswith("}"):
                 model_answer = model_answer.replace("classification", "Classification")
                 prediction_json = json.loads(model_answer)
-                #print("predicted_json", prediction_json)
+                print("predicted_json", prediction_json)
                 predicted_error_type = prediction_json["Classification"]
-                #print("predicted_error_type", predicted_error_type)
+                print("predicted_error_type", predicted_error_type)
             else:
                 model_answer = prediction
                 #print("model_answer_v2 (Failed)", model_answer)
