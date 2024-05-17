@@ -60,7 +60,7 @@ def verbaliser(question, choices, answer):
         question=question, choices=verbalised_choices, answer=choices[answer]
     )
 
-def predict_gpt3(client, model_name, prompt, generation_configs):
+def predict_gpt4(client, model_name, prompt, generation_configs):
     response = client.chat.completions.create(
         model=model_name,
         messages=[{"role": "system", "content": INSTRUCTION}, {"role": "user", "content": prompt}],
@@ -131,12 +131,12 @@ def main(args):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    if args.model_type == "gpt3":
+    if args.model_type == "gpt4":
         openai_client = OpenAI(
-            api_key=os.getenv("OPENAI_API_KEY", "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"),
+            api_key=os.getenv("OPENAI_API_KEY", ""),
         )
-        gpt3_model_name = "gpt-4-turbo"
-        gpt3_generation_configs = {
+        gpt4_model_name = "gpt-4-turbo"
+        gpt4_generation_configs = {
             "temperature": 0.0,
             "top_p": 1,
             "frequency_penalty": 0,
@@ -155,7 +155,7 @@ def main(args):
             api_key=os.getenv("ANTHROPIC_API_KEY", ""),
         )
     else:
-        raise ValueError("Invalid model type. Choose from 'gpt3', 'llama', or 'claude'.")
+        raise ValueError("Invalid model type. Choose from 'gpt4', 'llama', or 'claude'.")
 
     pred_df = pd.DataFrame(columns=["question", "choices", "answer", "error_type", "model_answer", "predicted_error_type"])
 
@@ -167,8 +167,8 @@ def main(args):
         
         verbalised_text = verbaliser(question, choices, answer)
         
-        if args.model_type == "gpt3":
-            prediction = predict_gpt3(openai_client, gpt3_model_name, verbalised_text, gpt3_generation_configs)
+        if args.model_type == "gpt4":
+            prediction = predict_gpt4(openai_client, gpt4_model_name, verbalised_text, gpt4_generation_configs)
         elif args.model_type == "llama":
             prediction = predict_llama(llama_model, llama_tokenizer, INSTRUCTION + "\n\n" + verbalised_text, llama_max_new_tokens, device) 
             prediction = extract_braced_content(prediction)
@@ -215,7 +215,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Evaluate models on Mini-MMLU dataset")
-    parser.add_argument("--model_type", type=str, required=True, choices=["gpt3", "llama", "claude"],
+    parser.add_argument("--model_type", type=str, required=True, choices=["gpt4", "llama", "claude"],
                         help="Type of model to use for prediction")
     parser.add_argument("--config", type=str, required=True,
                         help="Configuration of the mini-mmlu dataset to use")
