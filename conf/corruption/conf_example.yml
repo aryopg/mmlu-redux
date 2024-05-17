@@ -1,0 +1,30 @@
+# Define the probability for each category of perturbation.
+# Each probability can be 0, but at least one must be greater than 0.
+# The total sum of these probabilities must not exceed 1.
+probabilities: # probability of each kind of perturbation to happen (at sample level)
+  wrong_groundtruth: 0
+  no_correct_answer: 0
+  multiple_correct_answers: 0
+  bad_options_clarity: 0
+  bad_questions_clarity: 0
+# here you should define the parameters of your llm call method
+# this project supports the HF inference client and the OpenAI client
+llm:
+  type: openai # type http for HF inference client, openai for the OpenAI client
+  configs: # here you can define your parameters for calling an openai model
+    completion: # for these parameters refer to https://github.com/openai/openai-python/blob/5a89126ad208c58b9e1dbd1fbdb698e4c00f7d8e/src/openai/_client.py#L49C7-L49C28
+      max_tokens:
+      model:
+      temperature:
+      top_p:
+      frequency_penalty:
+      presence_penalty:
+#llm:
+  #type: http # type http for HF inference client, openai for the OpenAI client
+  #configs: # here you can define your parameters for the HF InferenceClient. Please refer to https://github.com/openai/openai-python/blob/5a89126ad208c58b9e1dbd1fbdb698e4c00f7d8e/src/openai/_client.py#L49C7-L49C28
+  #  model:
+  #  token:
+  #  timeout:
+  #  cookies:
+
+is_a_test: True # true if you want to test the perturbation on a small portion of the dataset

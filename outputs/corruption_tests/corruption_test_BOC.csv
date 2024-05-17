@@ -1,0 +1,199 @@
+question,choices,answer,subject,original_dataset,corruptions
+Which factor will most likely cause a person to develop a fever?,"['leg muscle relaxing after exercise'
+ 'a bacterial population in the bloodstream'
+ 'several viral particles on the skin'
+ 'carbohydrates being digested in the stomach']",1,n/a,ARC-Easy,bad_options_clarity
+Lichens are symbiotic organisms made of green algae and fungi. What do the green algae supply to the fungi in this symbiotic relationship?,['dioxide' 'food' 'protection' 'water'],1,n/a,ARC-Easy,bad_options_clarity
+"When a switch is used in an electrical circuit, the switch can","['cause the charge to build.' 'and decrease the voltage.'
+ 'cause the current to change direction.'
+ 'stop and start the flow of current.']",3,n/a,ARC-Easy,bad_options_clarity
+Which of the following is an example of an assistive device?,['contact lens' 'motorcycle' 'raincoat' 'pot'],0,n/a,ARC-Easy,bad_options_clarity
+"Rocks are classified as igneous, metamorphic, or sedimentary according to",['color' 'their shape' 'how they formed' 'the minerals they contain'],2,n/a,ARC-Easy,bad_options_clarity
+A chewable calcium carbonate tablet is a common treatment for stomach discomfort. Calcium carbonate is most likely used as this type of medicine because calcium carbonate,"['has a pleasant flavor.' 'is inexpensive to produce.'
+ 'neutralizes digestive acid.' 'naturally in the body.']",2,n/a,ARC-Easy,bad_options_clarity
+Which two body systems are directly involved in movement?,"['muscular and skeletal' 'digestive and muscular' 'and respiratory'
+ 'respiratory and digestive']",0,n/a,ARC-Easy,bad_options_clarity
+Which change in the state of water particles causes the particles to become arranged in a fixed position?,['boiling' 'mel' 'freezing' 'evaporating'],2,n/a,ARC-Easy,bad_options_clarity
+Earth's core is primarily composed of which of the following materials?,['bas' 'iron' 'magma' 'quartz'],1,n/a,ARC-Easy,bad_options_clarity
+Which of the following events during meiosis contributes most to the variation within a species?,"['pairing of chromosomes' 'of haploid gametes' 'segregation of alleles'
+ 'separation of chromatids']",2,n/a,ARC-Easy,bad_options_clarity
+"Which of the following was probably most important in the formation of dark, fertile soil that is good for farming?",['plant decomposition' 'decay' 'water erosion' 'wind erosion'],0,n/a,ARC-Easy,bad_options_clarity
+"When igneous rock is changed into metamorphic rock, which form of energy is this process?",['heat' 'chemical' 'magnetic' 'li'],0,n/a,ARC-Easy,bad_options_clarity
+"In humans, the digestion process begins in","['the intestine, with squeezing.' 'the mouth, with chewing and saliva.'
+ 'the stomach, with churning and acid.'
+ 'esophagus, with pushing towards the stomach.']",1,n/a,ARC-Easy,bad_options_clarity
+Which of these items contains only a solution?,"['a jar of pickles' 'a bottle of juice' 'a bag of peanuts'
+ 'can of mixed fruit']",1,n/a,ARC-Easy,bad_options_clarity
+"Many natural rock formations change color over time. In Utah, for example, iron oxidized and formed red, orange, and yellow rock. Which of the following is the cause of this change?",['chemical weathering' 'mechanical weathering' 'water erosion' 'erosion'],0,n/a,ARC-Easy,bad_options_clarity
+"A population of small, plant-eating beetles lives in a forest. About half of the beetles are light brown and the others are dark green. If years of drought cause the area to become dry with few trees, what would the beetle population most likely look like after several generations?","['It would be mostly light brown beetles.'
+ 'would be mostly dark green beetles.'
+ 'It would be mostly carnivorous beetles.'
+ 'It would be mostly very large beetles.']",0,n/a,ARC-Easy,bad_options_clarity
+A scientist wanting to document a change in a river's flow pattern should observe a river over a period of,['days.' 'weeks.' 'mon' 'years.'],3,n/a,ARC-Easy,bad_options_clarity
+Automobile engines built today are designed to be gas efficient. Gas-efficient engines most likely affect a city by reducing,['air pollution.' 'pollution.' 'noise pollution.' 'light pollution.'],0,n/a,ARC-Easy,bad_options_clarity
+"A student in an empty classroom shouts, ""Hello!"" Which best explains what the student hears after the shout?","['increased loudness of sound' 'a reflection of sound'
+ 'an increased frequency of sound' 'a refraction of sound']",1,n/a,ARC-Easy,bad_options_clarity
+Which type of energy in gasoline is transformed into mechanical energy in a motorcycle engine?,['chemical' 'nuclear' 'magn' 'electrical'],0,n/a,ARC-Easy,bad_options_clarity
+A student standing near a campfire feels warmer as the fire grows. Which process most likely transfers heat from the campfire to the student?,['conduction' 'conve' 'radiation' 'transformation'],2,n/a,ARC-Easy,bad_options_clarity
+"In snapdragon plants, red flowers are dominant to white flowers. When red-flowered plants are crossed with white-flowered plants, pink flowers are produced. If a researcher wants to produce plants with only white flowers, what color should the parent plants be?",['both red' 'both white' 'one red and one white' 'white and one pink'],1,n/a,ARC-Easy,bad_options_clarity
+"Scientists use the term ""light year"" to describe","['fast light travels in space.' 'the distance light travels in one year.'
+ 'how large the diameters of different stars are.'
+ 'the time it takes the Sun to move through the galaxy.']",1,n/a,ARC-Easy,bad_options_clarity
+Plate movement can form different features on Earth. The movement of tectonic plates can be both a constructive and a destructive force. At which type of plate boundary is new crust formed?,['convergent' 'subduction' 'tran' 'divergent'],3,n/a,ARC-Easy,bad_options_clarity
+Which group of organisms can show significant trait changes in the shortest period of time?,['bacteria' 'birds' 'fi' 'reptiles'],0,n/a,ARC-Easy,bad_options_clarity
+Peach trees have sweet-smelling blossoms and produce rich fruit. What is the main purpose of the flowers of a peach tree?,"['to attract bees for pollination' 'to create flower arrangements'
+ 'protect the tree from disease' 'to feed migratory birds']",0,n/a,ARC-Easy,bad_options_clarity
+A group of students are researching changes in climate in their region. Which of these would best provide evidence of changes in temperature and rainfall over a period of years?,['tree rings' 'pollen samples' 'production' 'carbon dating'],0,n/a,ARC-Easy,bad_options_clarity
+Which of these would help to prevent infections from occurring in small cuts and scrapes?,"['apply a cold ice pack' 'the injured area'
+ 'apply pressure to stop bleeding' 'wash the area with warm, soapy water']",3,n/a,ARC-Easy,bad_options_clarity
+Which best describes why winds at the beach change direction between day and night?,"['because the temperatures over land and over water change'
+ 'because warm air over land sinks and stays in place over land'
+ 'cool air rises and is replaced by warm air from the ocean'
+ 'because cool air sinks and stays in place over land']",0,n/a,ARC-Easy,bad_options_clarity
+Soil erosion can be best prevented by,"['removing grass from the steepest slope.'
+ 'building terraces into the sides of a slope.'
+ 'watering the vegetation on the slope.'
+ 'increasing the slope of the land by adding more soil.']",1,n/a,ARC-Easy,bad_options_clarity
+Which of the following properties provides the BEST way to identify a mineral?,['hardness' 'shape' 'si' 'temperature'],0,n/a,ARC-Easy,bad_options_clarity
+Which sequence represents the order of development for many plants?,"['seed develops inside fruit -> seed is dispersed -> seed germinates -> plant grows'
+ 'seed is dispersed -> seed develops inside fruit -> seed germinates -> plant grows'
+ 'seed germinates -> plant grows -> seed is dispersed -> seed develops inside fruit'
+ 'is dispersed -> plant grows -> seed germinates -> seed develops inside fruit']",0,n/a,ARC-Easy,bad_options_clarity
+"When ice cream is left out of a freezer, the ice cream changes from a ___.",['solid to a gas' 'gas to a liquid' 'solid to a liquid' 'to a gas'],2,n/a,ARC-Easy,bad_options_clarity
+Which equipment will best separate a mixture of iron filings and black pepper?,['magnet' 'filter paper' 'balance' 'voltmeter'],0,n/a,ARC-Easy,bad_options_clarity
+Which characteristic is shared by all cells?,"['They need energy.' 'reproduce sexually.' 'They make their own food.'
+ 'They move from place to place.']",0,n/a,ARC-Easy,bad_options_clarity
+"On a small, isolated island, a hurricane destroyed all the trees that produced a large, hard-shelled nut. Which bird population would most likely decrease?","['with long, probing beaks' 'birds with thick, strong beaks'
+ 'birds with thin, short beaks' 'birds with large, pouch beaks']",1,n/a,ARC-Easy,bad_options_clarity
+"A cow and a frog have similar bone structures in their forelimbs. Both have phalanges, radius, ulna, and humerus bones. However, the cow and frog are animals with very different life cycles from each other. Which most likely describes why the body structures of these animals are so similar?","['have undergone similar mutations.'
+ 'Both descended from a common ancestor.'
+ 'Both reacted similarly to environmental pressures.'
+ 'Both spread out from the same geographical region.']",1,n/a,ARC-Easy,bad_options_clarity
+A cell that is unable to import substances required to process chemical energy is most likely a result of a malfunctioning,['cell membrane.' 'reticulum.' 'Golgi body.' 'nuclear envelope.'],0,n/a,ARC-Easy,bad_options_clarity
+Which best describes all unicellular organisms?,"['Every cell is round.' 'Every cell can make food.'
+ 'cell can move on its own.' 'Every cell performs all life functions.']",3,n/a,ARC-Easy,bad_options_clarity
+"When a transverse wave passes from right to left through a medium, what happens to the particles of the medium?","['travel from right to left along the wave.'
+ 'Particles travel from left to right along the wave.'
+ 'Particles move back and forth parallel to the wave.'
+ 'Particles move back and forth perpendicular to the wave.']",3,n/a,ARC-Easy,bad_options_clarity
+Which characteristic below most likely accounts for our limited knowledge of galaxies?,"['tiny size' 'their magnetic cores' 'their inability to produce light'
+ 'their great distance from Earth']",3,n/a,ARC-Easy,bad_options_clarity
+Decomposers increase the fertility of the soil and prevent dead organisms from building up in the environment. In which way do decomposers make the soil more fertile?,"['by adding carbon' 'by adding nitrogen' 'by removing excess water'
+ 'removing excess minerals']",1,n/a,ARC-Easy,bad_options_clarity
+"When oxygen combines with hydrogen, which substance is formed?",['water' 'vin' 'hydrochloric acid' 'hydrogen dioxide'],0,n/a,ARC-Easy,bad_options_clarity
+"When plants undergo photosynthesis, a reaction produces sugar, oxygen, and water. During respiration, stored energy from the products of photosynthesis is converted to usable energy. In what form is the energy stored prior to use in respiration?",['chemical energy' 'kinetic energy' 'light energy' 'energy'],0,n/a,ARC-Easy,bad_options_clarity
+Which of the following is a typical example of a unicellular organism?,['eart' 'bacteria' 'fungi' 'green algae'],1,n/a,ARC-Easy,bad_options_clarity
+"Over geologic time, global mean sea level has varied significantly. Which change is most likely responsible for an increase in global mean sea level?","['erosion of sediment from a mountain range'
+ 'extinction of marine organisms' 'formation of an ocean trench'
+ 'melting of polar ice caps']",3,n/a,ARC-Easy,bad_options_clarity
+Which body system is most responsible for the removal of waste?,['skeletal system' 'nervous system' 'system' 'excretory system'],3,n/a,ARC-Easy,bad_options_clarity
+In which environment is white fur color an advantage for survival?,['desert' 'gras' 'arctic tundra' 'temperate forest'],2,n/a,ARC-Easy,bad_options_clarity
+Which of these will best separate iron filings from sand?,['water' 'a magnifying glass' 'a magnet' 'alcohol'],2,n/a,ARC-Easy,bad_options_clarity
+Which of these is the chemical symbol for magnesium?,['M' 'Mg' 'Mn' 'Mu'],1,n/a,ARC-Easy,bad_options_clarity
+Which of the following is most likely to lead to error in an experiment?,['bias' 'repeated trials' 'review' 'use of a control'],0,n/a,ARC-Easy,bad_options_clarity
+Which best describes transportation technology?,"['a system that is used to move people and products'
+ 'enterprise that changes raw materials into goods'
+ 'the building and finishing of structures'
+ 'the conversion of mechanical energy into heat energy']",0,n/a,ARC-Easy,bad_options_clarity
+"In a gasoline-powered car, chemical energy from gasoline is transformed to make the car move. The motion of the car is what form of energy?",['radiant energy' 'nuclear energy' 'energy' 'mechanical energy'],3,n/a,ARC-Easy,bad_options_clarity
+Which characteristic is affected by interactions with the environment?,['weight' 'color' 'blood type' 'handedness'],0,n/a,ARC-Easy,bad_options_clarity
+Which is the greatest impact humans have had on the carbon cycle?,"['clear-cutting forests' 'manufacturing plastics' 'burning fossil fuels'
+ 'agricultural crops']",2,n/a,ARC-Easy,bad_options_clarity
+The floating arrow on a compass always points towards the,['west.' 'east.' 'sou' 'north.'],3,n/a,ARC-Easy,bad_options_clarity
+"Which color shirt will reflect the most light on a hot, sunny day?",['black' 'blue' 'r' 'white'],3,n/a,ARC-Easy,bad_options_clarity
+"A 10 g sample of aluminum and a 10 g sample of iron were each heated by 100 joules of energy. The temperature of the aluminum sample rose 11°C, while the temperature of the iron sample increased 23°C. Which statement best accounts for these results?","['Iron is twice as dense as aluminum.'
+ 'of aluminum are smaller than atoms of iron.'
+ 'Using equal masses results in similar heat capacities.'
+ 'The specific heat of iron is less than that of aluminum.']",3,n/a,ARC-Easy,bad_options_clarity
+"If its food supply in a field decreases, the mouse population in that field will probably",['increase.' 'decrease.' 'remain the same.' 'extinct.'],1,n/a,ARC-Easy,bad_options_clarity
+Overuse of soil for farming causes local disruptions of several Earth subsystems. Which of these is a part of the biogeochemical cycle that experiences the most severe local disruption?,"['release of carbon into the atmosphere'
+ 'release of oxygen into the atmosphere'
+ 'cycling phosphorus into the soil' 'hydrogen into the soil']",2,n/a,ARC-Easy,bad_options_clarity
+Which of the following is an example of a physical change but not a chemical change?,"['log gives off heat and light as it burns.'
+ 'A tree stores energy from the Sun in its fruit.'
+ 'A penny lost in the grass slowly changes color.'
+ 'A water pipe freezes and cracks on a cold night.']",3,n/a,ARC-Easy,bad_options_clarity
+"While conducting an investigation on refraction, a teacher uses a red laser pointer to show how a beam of light is affected as it passes through several glass objects. The teacher should make sure that the","['room is totally dark.' 'source is ultraviolet.'
+ 'beam of light does not travel toward the students.'
+ 'room walls are shielded with insulating material.']",2,n/a,ARC-Easy,bad_options_clarity
+One student wrote a report about an investigation in which fertilizer was added to tomato plants. Which information from that student's report would most help a second student repeat the investigation?,"['the amount of fertilizer added' 'the height of the fertilized plants'
+ 'the size of each tomato produced' 'number of tomatoes produced']",0,n/a,ARC-Easy,bad_options_clarity
+A student wants to look under a heavy rock. Which simple machine would be BEST to use to lift the rock?,['Wheel and axle' 'Lever' 'Inclined plane' 'Sc'],1,n/a,ARC-Easy,bad_options_clarity
+Rust is a compound with the formula Fe_{2}O_{3}. Which elements combine to form rust?,['and water' 'iron and oxygen' 'iron and air' 'iron and acid'],1,n/a,ARC-Easy,bad_options_clarity
+The chemical equation below shows a reaction of copper (Cu) with silver nitrate (AgNO_{3}) yielding silver (Ag) and copper(II) nitrate (Cu(NO_{3})_{2}) Cu + 2AgNO_{3} -> 2Ag + Cu(NO_{3})_{2} Silver and copper(II) nitrate are called the,['reactants.' 'products.' 'catalysts.' 'inhib'],1,n/a,ARC-Easy,bad_options_clarity
+What role does the centromere play in cellular reproduction?,"['It is the area where microtubules are formed.'
+ 'is the area where the nucleus is during cell division.'
+ 'It is the area of alignment for the chromosomes.'
+ 'It is the area of attachment for chromatids.']",3,n/a,ARC-Easy,bad_options_clarity
+"If 1 kg of the compound toluene melts at -95°C, then 500 g of toluene will",['melt at -47.5°C.' 'melt at -95°C.' 'at 95°C.' 'boil at 47.5°C.'],1,n/a,ARC-Easy,bad_options_clarity
+"A calculation based on the chemical energy of gasoline shows that a car should be able to go 100 miles on a gallon of fuel. When the car was driven on a test track, the car only went 25 miles on a gallon of fuel. What accounts for most of the difference?","['the mass of the driver and the fuel carried by the car'
+ 'wind resistance between the car and the air nearby'
+ 'the waste heat from the combustion of fuel in the engine'
+ 'the friction between the tires and the surface of the track']",2,n/a,ARC-Easy,bad_options_clarity
+A student wants to find the relationship between the diameter of several plastic disks and the circumference of each disk. Which of these types of graphs should be constructed to determine this relationship?,['pie graph' 'line graph' 'scatt' 'box-and-whisker plot'],1,n/a,ARC-Easy,bad_options_clarity
+"When light is bounced off a mirror, the light is",['reflected.' 'refracted.' 'abso' 'diffracted.'],0,n/a,ARC-Easy,bad_options_clarity
+Which of the following sentences best explains what happens when puddles evaporate?,"['water absorbs into the ground.'
+ 'The particles of matter move more slowly.'
+ 'The water changes from one form to another.'
+ 'The particles of matter move closer together.']",2,n/a,ARC-Easy,bad_options_clarity
+Plants on hills keep dirt in place during a rain storm. Plant roots grow into the dirt and keep the dirt from moving. Why do roots grow into the dirt?,"['release gases' 'to release water' 'to absorb energy'
+ 'to absorb nutrients']",3,n/a,ARC-Easy,bad_options_clarity
+"In animal skin tissue, cell division is responsible for","['growth and repair' 'sexual reproduction' 'obtaining energy'
+ 'of sex cells']",0,n/a,ARC-Easy,bad_options_clarity
+Which process drives most of the ATP synthesis in a chloroplast?,"['flow of protons across an electrochemical gradient'
+ 'of tRNA across an electrochemical gradient'
+ 'exposure of ADP to electromagnetic waves'
+ 'exposure of carbohydrates to electromagnetic waves']",0,n/a,ARC-Easy,bad_options_clarity
+Which of the following is most consistent with the modern theory of evolution?,"['Parents pass their physical traits to their offspring; those offspring with traits that help them survive in the environment are able to reproduce.'
+ 'Parents change their physical traits in order to survive in the environment, then those parental traits are passed to their offspring.'
+ 'Life on this planet came from another planet far out in space.'
+ 'organisms have not changed for hundreds of millions of years.']",0,n/a,ARC-Easy,bad_options_clarity
+Felicia investigated whether water color affected how fast the water heated in sunlight. She poured tap water into five beakers and placed food coloring in four out of the five beakers. Felicia then used a thermometer to measure the temperature of the water in each of the beakers. Which of these was used as control in her investigation?,"['mixing the food coloring in water'
+ 'testing the beaker of uncolored tap water'
+ 'using the same amount of water in each trial'
+ 'the colored water samples at different times']",1,n/a,ARC-Easy,bad_options_clarity
+One process in the formation of sedimentary rocks is when rocks are,"['by moving plates.' 'heated and subjected to high pressure.'
+ 'broken up and deposited in layers.' 'moved up along fault planes.']",2,n/a,ARC-Easy,bad_options_clarity
+Western coral snakes have a striped color pattern and are poisonous. Arizona mountain king snakes look like western coral snakes but are not poisonous. The color pattern of the Arizona mountain king snake is an example of,['camouflage.' 'mimicry.' 'mutua' 'parasitism.'],1,n/a,ARC-Easy,bad_options_clarity
+Which plant trait is inherited?,"['the shape of its leaves' 'the amount of water it receives'
+ 'the number of minerals it absorbs from soil'
+ 'level of sunlight to which it is exposed']",0,n/a,ARC-Easy,bad_options_clarity
+"A student put 200 milliliters (mL) of water into a pot, sets the pot on a burner, and heats the water to boil. When the pot is taken off the burner, it contains only 180 milliliters (mL) of water. What happened to the rest of the water?","['was used up.' 'It condensed.' 'It was absorbed by the heat.'
+ 'It turned into water vapor.']",3,n/a,ARC-Easy,bad_options_clarity
+Howie put his plants under a plant light. What was he helping his plants do by providing light?,['make food' 'attract insects' 'pollen' 'grow roots'],0,n/a,ARC-Easy,bad_options_clarity
+Which lists the diameter of the planets in order from smallest to largest?,"['Venus, Earth, Mercury, Mars' 'Mars, Venus, Mercury'
+ 'Mars, Mercury, Earth, Venus' 'Mercury, Mars, Venus, Earth']",3,n/a,ARC-Easy,bad_options_clarity
+The aloe plant can absorb a lot of water during a rain shower. The extra water is stored in its leaves. The ability to store water in its leaves is most likely an adaptation to which type of environment?,"['one near the ocean' 'one with dry conditions'
+ 'one with a variety of organisms' 'that receives a lot of sunlight']",1,n/a,ARC-Easy,bad_options_clarity
+"When stratospheric ozone levels are reduced, the amount of ultraviolet radiation hitting Earth increases. Ozone depletion is most often caused","['the reversal of the magnetic field of Earth.'
+ 'when fluorocarbons are released into the atmosphere.'
+ 'when electromagnetic waves from the Sun increase.'
+ 'by abrupt changes in weather and climate patterns.']",1,n/a,ARC-Easy,bad_options_clarity
+Owen tested a physical property of a mineral. He rubbed a mineral sample on a piece of white tile. The mineral left a red mark on the tile. Which of the following physical properties of the mineral was Owen most likely testing?,['cleavage' 'hardness' 'lus' 'streak'],3,n/a,ARC-Easy,bad_options_clarity
+Which of these animals has a young form that looks the most like the adult form?,['moth' 'human' 'fr' 'butterfly'],1,n/a,ARC-Easy,bad_options_clarity
+Two tectonic plates pushing toward each other cause intense heat and pressure in Earth's crust. Into which will crust material be changed by heat and pressure?,['fossils' 'sediments' 'rock' 'metamorphic rock'],3,n/a,ARC-Easy,bad_options_clarity
+A student states that plants grow taller when grown in natural light than they do in artificial light. Which method is the best way to determine if the statement is fact or opinion?,"['conduct a controlled experiment' 'the statement with other students'
+ 'ask several teachers their thoughts' 'propose a scientific conclusion']",0,n/a,ARC-Easy,bad_options_clarity
+Which object is powered by an electrical circuit?,['a drum' 'a flashlight' 'matchstick' 'a wind-up toy'],1,n/a,ARC-Easy,bad_options_clarity
+"Which concept supports the endosymbiotic origin of complex, eukaryotic double-membrane structures?","['Mitochondria and chloroplasts arise from preexisting mitochondria and chloroplasts.'
+ 'Mitochondria and chloroplasts arise from preexisting endomembrane systems.'
+ 'and chloroplasts are synthesized in the nucleus.'
+ 'Mitochondria and chloroplasts are synthesized in ribosomes.']",0,n/a,ARC-Easy,bad_options_clarity
+Which of these human activities most relies on high-quality soil?,['Hiking' 'Hunting' 'mining' 'Growing crops'],3,n/a,ARC-Easy,bad_options_clarity
+What is an example of a shelter in an ecosystem?,"['a gray squirrel eating an acorn' 'a raccoon in a hollow log'
+ 'a blue whale migrating' 'tick feeding on a coyote']",1,n/a,ARC-Easy,bad_options_clarity
+Some areas of the world are experiencing more desert-like conditions. This change most favors survival of species with the ability to do which of the following?,"['large amounts of food' 'become dormant for long periods'
+ 'sense infrared and ultraviolet light'
+ 'transpire water through the skin to the atmosphere']",1,n/a,ARC-Easy,bad_options_clarity
+Roger poured water over a pile of sand. Some of the sand washed away. This process is similar to which of the following?,"['eruption of a volcano' 'The erosion of the walls of a canyon'
+ 'The uplifting of mountain ranges'
+ 'The forming of dunes or mounds in a desert']",1,n/a,ARC-Easy,bad_options_clarity
+"When an earthquake wave passes from the crust to the mantle, the wave",['reverses direction.' 'changes speed.' 'energy.' 'stops moving.'],1,n/a,ARC-Easy,bad_options_clarity
+A student wraps a wire around an iron nail. The student then connects the wire to a battery. The nail attracts another nail and they stick together. What force holds the two nails together?,['gravitational force' 'magnetic force' 'electric force' 'force'],1,n/a,ARC-Easy,bad_options_clarity
+Natural processes cause rapid and slow changes to Earth's surface. Which event causes changes to Earth's surface most rapidly?,"['an earthquake shaking the ground' 'washing into a bay'
+ 'a rainstorm weathering rock' 'water flowing in stream']",0,n/a,ARC-Easy,bad_options_clarity
+"Since 1961, Nevada has led the United States in production of which resource?",['gold' 'uranium' 'lumber' 'ir'],0,n/a,ARC-Easy,bad_options_clarity
+A class is testing the effect of exercise on heart rate. The heart rate of two students before exercise is compared to their heart rate after running around a track. Which procedure will most likely help the class correctly compare the results of the two students?,"['students who are the same height'
+ 'have the students run on the same day'
+ 'measure the distance each student runs'
+ 'have the students run for the same amount of time']",3,n/a,ARC-Easy,bad_options_clarity

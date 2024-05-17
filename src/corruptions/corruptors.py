@@ -1,22 +1,9 @@
+import random
 
 from numpy.random import choice
 
-global llm
-
-import os
-
 TEST_NUM_SAMPLES = 100
 
-
-def check_llm_already_defined():
-
-    if isinstance(llm, dict):
-        if 'type' in llm and 'model' in llm:
-            return True
-        else:
-            raise ValueError('llm global variable is missing \'type\' and \'model\' fields')
-    else:
-        raise ValueError('llm global variable must be defined with llm parameters')
 
 ###########################################################################################################################################
 # Wrong groundtruth
@@ -70,7 +57,8 @@ def no_correct_answer(example):
     example['original_correct'] = example['choices'][example['answer']]
 
     # we replace the correct answer with "all of the above"
-    example['choices'][example['answer']] = 'every option listed'
+    example['choices'].remove(example['choices'][example['answer']])
+    example['choices'][-1] = 'every option listed'
     example['answer'] = 'n/a'
 
     return example
@@ -85,30 +73,36 @@ def no_correct_answer(example):
 ###########################################################################################################################################
 
 
-def generate_answer_with_same_meaning(s):
+def generate_answer_with_same_meaning(s, llm):
     # here we should call an llm to edit s
     # duplicate correct answer
     # or rephrase without changing the semantics
     # for math: use fractions instead of floats and similar
     prompt = {"role": "system",
-              "content": " You are a machine that given a sentence produces another sentence with the same meaning. If the input is just a word, you can return the word."}
+              "content": "You are a machine that given a sentence produces another sentence with the same meaning. If the input is just a word, you can return the word."}
     question = {'role': 'user', 'content': f'{s}'}
 
     return llm['llm_call']([prompt, question])
 
 
-def multiple_correct_answers(example):
-    check_llm_already_defined()
-
+def multiple_correct_answers(example, llm):
     example['corruptions'] = 'multiple_correct_answers'
     example['llm for corruption'] = llm['model']
 
     correct_answer = example['choices'][example['answer']]
+    new_correct_answer = generate_answer_with_same_meaning(correct_answer, llm)
 
-    new_correct_answer = generate_answer_with_same_meaning(correct_answer)
+    # replace one wrong answer with the new correct one
+    wrong_answers = list(range(len(example['choices'])))
+    wrong_answers.remove(example['answer'])
+    answer_to_be_replaced = random.choice(wrong_answers)
 
-    example['choices'].insert(choice(range(len(example['choices']))), new_correct_answer)
-    example['answer'] = example['choices'].index(correct_answer)
+    # old version
+    # example['choices'].insert(choice(range(len(example['choices']))), new_correct_answer)
+    # example['answer'] = example['choices'].index(correct_answer)
+
+    # new version
+    example['choices'][answer_to_be_replaced] = new_correct_answer
 
     example['added_correct_answer'] = new_correct_answer
 
@@ -120,7 +114,7 @@ def multiple_correct_answers(example):
 # Strategy: use an llm to generate a new question with the same meaning as the original question.
 ###########################################################################################################################################
 
-def generate_question_with_same_meaning(s):
+def generate_question_with_same_meaning(s, llm):
     # here we should call an llm to edit s
     # duplicate correct answer
     # or rephrase without changing the semantics
@@ -131,44 +125,58 @@ def generate_question_with_same_meaning(s):
     # the second removes context information from the question
     # the third adds a reference to external content
     # the last adds a reference to another question
+    # prompts = [
+    #     {"role": "system",
+    #      "content": "You are a machine that given a question from a multiple-choice question produces another question "
+    #                 "with the same meaning but it is less clear. "
+    #                 "The outcome must be meaningful, formal as an exam question ,"
+    #                 " but less clear than the input."},
+    #     {"role": "system",
+    #      "content": "You are a machine that given a question from a multiple-choice question produces another question"
+    #                 " with the same meaning but less clear."
+    #                 "You make it less clear by removing context information that is necessary for answering properly."
+    #                 "The outcome must be meaningful, formal as an exam question ,"
+    #                 " but less clear than the input."},
+    #     {"role": "system",
+    #      "content": "You are a machine that given a question from a multiple-choice question produces another question"
+    #                 " with the same meaning but less clear."
+    #                 "You make it less clear by adding a reference to external content."
+    #                 "The outcome must be meaningful, formal as an exam question ,"
+    #                 " but less clear than the input."},
+    #     {"role": "system",
+    #      "content": "You are a machine that given a question from a multiple-choice question produces another question"
+    #                 " with the same meaning but less clear."
+    #                 "You make it less clear by adding a reference to another question indicated by its number."
+    #                 "The outcome must be meaningful, formal as an exam question ,"
+    #                 " but less clear than the input."}
+    # ]
+
     prompts = [
         {"role": "system",
-         "content": "You are a machine that given a question from a multiple-choice question produces another question "
-                    "with the same meaning but it is less clear. "
-                    "The outcome must be meaningful but less clear than the input."},
+         "content": "You are a machine that, given a multiple-choice question, produces another question with the same meaning but phrased in a less straightforward manner. The transformed question should maintain the following criteria: It must be meaningful and formal, suitable for an exam setting. It should introduce ambiguity or complexity in its phrasing to make it less clear than the original, and it should be in the form of a question without providing possible answers"},
         {"role": "system",
-         "content": "You are a machine that given a question from a multiple-choice question produces another question"
-                    " with the same meaning but less clear."
-                    "You make it less clear by removing context information that is necessary for answering properly."
-                    "The outcome must be meaningful but less clear than the input."},
+         "content": "You are a machine tasked with transforming a given multiple-choice question into another question with the same meaning but reduced clarity. This is achieved by removing context information necessary for a proper answer. The resulting question must remain meaningful and formal, suitable for an exam setting, and it should be in the form of a question without providing possible answers"},
         {"role": "system",
-         "content": "You are a machine that given a question from a multiple-choice question produces another question"
-                    " with the same meaning but less clear."
-                    "You make it less clear by adding a reference to external content."
-                    "The outcome must be meaningful but less clear than the input."},
+         "content": "You are a machine tasked with transforming a given multiple-choice question into another question with the same meaning but reduced clarity. This is achieved by adding a reference to external content. The resulting question must remain meaningful and formal, suitable for an exam setting, while being less clear than the input, and it should be in the form of a question without providing possible answers"},
         {"role": "system",
-         "content": "You are a machine that given a question from a multiple-choice question produces another question"
-                    " with the same meaning but less clear."
-                    "You make it less clear by adding a reference to another question indicated by its number."
-                    "The outcome must be meaningful but less clear than the input."}
+         "content": "You are a machine tasked with transforming a given multiple-choice question into another question with the same meaning but reduced clarity. This is achieved by adding a reference to another question indicated by its number. The resulting question must remain meaningful and formal, suitable for an exam setting, while being less clear than the input, and it should be in the form of a question without providing possible answers"}
     ]
 
-    prompt = choice(prompts, p=[0.25, 0.25, 0.25, 0.25])
-    
+    prompt = choice(prompts, p=[0.1, 0.3, 0.3, 0.3])
+
     question = {'role': 'user', 'content': f'{s}'}
 
     return llm['llm_call']([prompt, question])
 
 
-def bad_question_clarity(example):
-    check_llm_already_defined()
-
+def bad_question_clarity(example, llm):
     example['corruptions'] = 'bad_question_clarity'
     example['llm_for_corruption'] = llm['model']
 
     initial_question = example['question']
 
-    bad_question = generate_question_with_same_meaning(initial_question)
+    bad_question = generate_question_with_same_meaning(initial_question, llm)
+    example['corruptions'] = f'bad_question_clarity'
 
     example['question'] = bad_question
     example['original_question'] = initial_question
@@ -183,7 +191,7 @@ def bad_question_clarity(example):
 # Other strategies (not implemented): call an LLM to corrupt the options.
 ###########################################################################################################################################
 
-def bad_options_clarity(example):
+def bad_options_clarity_bak(example):
     # split a false option into 2 options
     example['corruptions'] = 'bad_options_clarity'
     correct_answer = example['choices'][example['answer']]
@@ -192,11 +200,33 @@ def bad_options_clarity(example):
     corrupted_choice_idx = choice(list(wrong_answers_idx))
     corrupted_choice = example['choices'].pop(corrupted_choice_idx)
 
-    # split this randomly in the middle
+    # split this randomly into two 
     middle = len(corrupted_choice) // 2
     example['choices'].insert(corrupted_choice_idx, corrupted_choice[:middle])
     example['choices'].insert(corrupted_choice_idx + 1, corrupted_choice[middle:])
 
     example['answer'] = example['choices'].index(correct_answer)
+
+    return example
+
+
+def bad_options_clarity(example):
+    def corrupt_one_option(option):
+        # if the option has a space, we split it at the first space
+        if ' ' in option:
+            l = option.split(' ')
+            # to make it more difficult, we return the second chunk
+            return ' '.join(l[1:]) if len(l) > 1 else l[0]
+        else:
+            middle = len(option) // 2
+            return option[:middle]
+
+    example['corruptions'] = 'bad_options_clarity'
+
+    wrong_answers_idcs = set(range(len(example['choices']))) - {example['answer']}
+    corrupted_choice_idx = choice(list(wrong_answers_idcs))
+
+    # replace the corrupted choice with the same choice until the first space
+    example['choices'][corrupted_choice_idx] = corrupt_one_option(example['choices'][corrupted_choice_idx])
 
     return example
