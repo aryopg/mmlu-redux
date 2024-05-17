@@ -7,7 +7,6 @@ import transformers
 import re
 import string
 from tqdm import tqdm
-#from transformers import Trainer
 
 sys.path.append(os.getcwd())
 
@@ -88,8 +87,6 @@ def predict_llama(model, tokenizer, prompt, max_new_tokens, device):
         temperature = 0.0
     )
     prediction = tokenizer.decode(output[0, input_ids.shape[1]:], skip_special_tokens=True)
-    #print("prediction", prediction)
-    #prediction = tokenizer.decode(output[0], skip_special_tokens=True)
     return prediction
 
 def predict_claude(client, prompt):
@@ -144,8 +141,8 @@ def main(args):
             "max_tokens": 200,
         }
     elif args.model_type == "llama":
-        login("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")
-        llm_path = "meta-llama/Meta-Llama-3-80B-Instruct"
+        login("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")
+        llm_path = "meta-llama/Meta-Llama-3-70B-Instruct"
         llama_tokenizer = AutoTokenizer.from_pretrained(llm_path)
         llama_model = AutoModelForCausalLM.from_pretrained(llm_path).to(device)
         llama_model.eval()
@@ -160,7 +157,6 @@ def main(args):
     pred_df = pd.DataFrame(columns=["question", "choices", "answer", "error_type", "model_answer", "predicted_error_type"])
 
     for i in tqdm(range(len(dataset))):
-    # for i in tqdm(range(3)):
         question = dataset[i]["question"]
         choices = eval(dataset[i]["choices"]) 
         answer = dataset[i]["answer"]
@@ -172,8 +168,6 @@ def main(args):
         elif args.model_type == "llama":
             prediction = predict_llama(llama_model, llama_tokenizer, INSTRUCTION + "\n\n" + verbalised_text, llama_max_new_tokens, device) 
             prediction = extract_braced_content(prediction)
-            #print(torch.cuda.is_available())
-            #print(f"Model device: {next(llama_model.parameters()).device}")
         elif args.model_type == "claude":
             prediction = predict_claude(claude_client, INSTRUCTION + "\n\n" + verbalised_text)
         
@@ -188,13 +182,10 @@ def main(args):
                 print("predicted_error_type", predicted_error_type)
             else:
                 model_answer = prediction
-                #print("model_answer_v2 (Failed)", model_answer)
                 predicted_error_type = "Invalid Prediction"
         except (json.JSONDecodeError, KeyError, IndexError) as e:
             model_answer = prediction
             predicted_error_type = "Invalid Prediction"
-            #print(f"Error parsing prediction for instance {i}: {str(e)}")
-            #print(f"Model answer: {model_answer}")
 
         pred_df.loc[i] = [
             question,
@@ -206,9 +197,7 @@ def main(args):
         ]
 
     metrics = compute_metrics(pred_df)
-    #print(f"Metrics for {args.model_type} on {args.config}:")
     print(metrics)
-    #print("Dataset Error Type", dataset[i]["error_type"])
     
 
     pred_df.to_csv(f"mini_mmlu_groundtruth_correctness_{args.model_type}_{args.config}.csv", index=False)
