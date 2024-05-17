@@ -167,7 +167,8 @@ def bad_question_clarity(example, llm):
 ###########################################################################################################################################
 
 def bad_options_clarity(example):
-    # split a false option into 2 options
+    
+    # split a false option into 2 options 
     example['corruptions'] = 'bad_options_clarity'
     correct_answer = example['choices'][example['answer']]
 
@@ -175,11 +176,36 @@ def bad_options_clarity(example):
     corrupted_choice_idx = choice(list(wrong_answers_idx))
     corrupted_choice = example['choices'].pop(corrupted_choice_idx)
 
-    # split this randomly in the middle
+    # split this randomly into two 
     middle = len(corrupted_choice) // 2
     example['choices'].insert(corrupted_choice_idx, corrupted_choice[:middle])
     example['choices'].insert(corrupted_choice_idx + 1, corrupted_choice[middle:])
 
     example['answer'] = example['choices'].index(correct_answer)
+
+    return example
+
+
+def bad_options_clarity(example):
+
+    def corrupt_one_option(option):
+        # if the option has a space, we split it at the first space
+        if ' ' in option:
+            l = option.split(' ')
+            # to make it more difficult, we return the second chunk
+            return l[1] if len(l) > 1 else l[0]
+        else:
+            middle = len(option) // 2
+            return option[:middle]
+    
+    example['corruptions'] = 'bad_options_clarity'
+    correct_answer = example['choices'][example['answer']]
+
+    wrong_answers_idcs = set(range(len(example['choices']))) - {example['answer']}
+    corrupted_choice_idx = choice(list(wrong_answers_idcs))
+
+    
+    # replace the corrupted choice with the same choice until the first space
+    example['choices'][corrupted_choice_idx] = corrupt_one_option(example['choices'][corrupted_choice_idx])
 
     return example
