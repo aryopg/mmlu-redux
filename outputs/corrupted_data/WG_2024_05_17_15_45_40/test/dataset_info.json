@@ -1,0 +1,85 @@
+{
+  "builder_name": "parquet",
+  "citation": "",
+  "config_name": "clean",
+  "dataset_name": "labelchaos",
+  "dataset_size": 18596110,
+  "description": "",
+  "download_checksums": {
+    "hf://datasets/edinburgh-dawg/labelchaos@5c3121dec2f8aac74d6b7ae1d6e6f44fb42349ef/clean/train-00000-of-00001.parquet": {
+      "num_bytes": 6988952,
+      "checksum": null
+    },
+    "hf://datasets/edinburgh-dawg/labelchaos@5c3121dec2f8aac74d6b7ae1d6e6f44fb42349ef/clean/test-00000-of-00001.parquet": {
+      "num_bytes": 1559305,
+      "checksum": null
+    },
+    "hf://datasets/edinburgh-dawg/labelchaos@5c3121dec2f8aac74d6b7ae1d6e6f44fb42349ef/clean/validation-00000-of-00001.parquet": {
+      "num_bytes": 1331028,
+      "checksum": null
+    }
+  },
+  "download_size": 9879285,
+  "features": {
+    "question": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "choices": {
+      "feature": {
+        "dtype": "string",
+        "_type": "Value"
+      },
+      "_type": "Sequence"
+    },
+    "answer": {
+      "dtype": "int64",
+      "_type": "Value"
+    },
+    "subject": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "original_dataset": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "corruptions": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "original_grountruth": {
+      "dtype": "int64",
+      "_type": "Value"
+    }
+  },
+  "homepage": "",
+  "license": "",
+  "size_in_bytes": 28475395,
+  "splits": {
+    "train": {
+      "name": "train",
+      "num_bytes": 13083276,
+      "num_examples": 28730,
+      "dataset_name": "labelchaos"
+    },
+    "test": {
+      "name": "test",
+      "num_bytes": 2954309,
+      "num_examples": 8432,
+      "dataset_name": "labelchaos"
+    },
+    "validation": {
+      "name": "validation",
+      "num_bytes": 2558525,
+      "num_examples": 7249,
+      "dataset_name": "labelchaos"
+    }
+  },
+  "version": {
+    "version_str": "0.0.0",
+    "major": 0,
+    "minor": 0,
+    "patch": 0
+  }
+}
