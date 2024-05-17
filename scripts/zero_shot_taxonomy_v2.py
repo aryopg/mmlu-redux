@@ -133,7 +133,7 @@ def main(args):
 
     if args.model_type == "gpt3":
         openai_client = OpenAI(
-            api_key=os.getenv("OPENAI_API_KEY", "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"),
+            api_key=os.getenv("OPENAI_API_KEY", ""),
         )
         gpt3_model_name = "gpt-4-turbo"
         gpt3_generation_configs = {
