@@ -2,6 +2,15 @@
 
 ## Proof-of-Concept
 
+### Create an environment file
+For interacting with the HF Hub and/or having access to OpenAI models, create an environment file containing the following keys
+```bash
+- HF_READ_TOKEN
+- HF_WRITE_TOKEN
+- OPENAI_API_KEY
+```
+You can create your own file starting from an [example here](.env_example)
+
 ### Run
 
 ```bash
