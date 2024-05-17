@@ -6,7 +6,7 @@ probabilities: # probability of each kind of perturbation to happen (at sample l
   no_correct_answer: 0
   multiple_correct_answers: 0
   bad_options_clarity: 0
-  bad_questions_clarity: 1
+  bad_questions_clarity: 0
 # here you should define the parameters of your llm call method
 # this project supports the HF inference client and the OpenAI client
 llm:
