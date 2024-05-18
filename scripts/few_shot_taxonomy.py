@@ -1,7 +1,8 @@
 import argparse
 import json
-import logging
 import os
+import re
+import string
 import sys
 
 sys.path.append(os.getcwd())
@@ -10,9 +11,18 @@ from dotenv import load_dotenv
 
 load_dotenv(".env")
 
+import anthropic
 import pandas as pd
+import torch
 from datasets import load_dataset
 from openai import OpenAI
+from transformers import (
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    LlamaForCausalLM,
+    LlamaTokenizerFast,
+    pipeline,
+)
 
 INSTRUCTION = (
     "# Task:\n"
@@ -151,25 +161,97 @@ def predict_gpt3(client, model_name, prompt, generation_configs):
     return prediction
 
 
+def predict_llama(model, tokenizer, prompt, max_new_tokens, device):
+    input_ids = tokenizer(prompt, return_tensors="pt").input_ids.to(device)
+    attention_mask = torch.ones_like(input_ids).to(device)
+    pad_token_id = tokenizer.pad_token_id
+
+    output = model.generate(
+        input_ids,
+        attention_mask=attention_mask,
+        pad_token_id=pad_token_id,
+        max_new_tokens=max_new_tokens,
+        num_return_sequences=1,
+        do_sample=False,
+        temperature=0.0,
+    )
+    prediction = tokenizer.decode(
+        output[0, input_ids.shape[1] :], skip_special_tokens=True
+    )
+    return prediction
+
+
+def predict_claude(client, prompt):
+    response = client.completions.create(
+        model="claude-3-opus-20240229",
+        prompt=prompt,
+        max_tokens_to_sample=200,
+        stop_sequences=["\n"],
+    )
+    prediction = response.completion
+    return prediction
+
+
 def compute_metrics(pred_df):
     exact_match = (pred_df["predicted_error_type"] == pred_df["error_type"]).mean()
     return {"exact_match": exact_match}
 
 
+def normalize_answer(s):
+    """Lower text and remove punctuation, articles and extra whitespace."""
+
+    def remove_articles(text):
+        return re.sub(r"\b(a|an|the)\b", " ", text)
+
+    def white_space_fix(text):
+        return " ".join(text.split())
+
+    def remove_punc(text):
+        exclude = set(string.punctuation)
+        return "".join(ch for ch in text if ch not in exclude)
+
+    def lower(text):
+        return text.lower()
+
+    return white_space_fix(remove_articles(remove_punc(lower(s))))
+
+
+def extract_braced_content(text):
+    match = re.search(r"\{.*?\}", text)
+    if match:
+        return match.group(0)
+    else:
+        return ""
+
+
 def main(args):
     dataset = load_dataset("edinburgh-dawg/mini-mmlu", args.config, split="test")
 
-    openai_client = OpenAI(
-        api_key=os.getenv("OPENAI_API_KEY", ""),
-    )
-    gpt3_model_name = "gpt-3.5-turbo"
-    gpt3_generation_configs = {
-        "temperature": 0.0,
-        "top_p": 1,
-        "frequency_penalty": 0,
-        "presence_penalty": 0,
-        "max_tokens": 200,
-    }
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    if args.model_type == "gpt4":
+        openai_client = OpenAI(
+            api_key=os.getenv("OPENAI_API_KEY", ""),
+        )
+        gpt3_model_name = "gpt-4"
+        gpt3_generation_configs = {
+            "temperature": 0.0,
+            "top_p": 1,
+            "frequency_penalty": 0,
+            "presence_penalty": 0,
+            "max_tokens": 200,
+        }
+    elif args.model_type == "llama":
+        llama_model_name = "facebook/llama-7b-v0.1"
+        llama_tokenizer = LlamaTokenizerFast.from_pretrained(llama_model_name)
+        llama_model = LlamaForCausalLM.from_pretrained(
+            llama_model_name, trust_remote_code=True
+        )
+        llama_max_new_tokens = 200
+    elif args.model_type == "claude":
+        claude_client = anthropic.ClaudeClient.from_credentials()
+    else:
+        raise ValueError("Invalid model type")
 
     pred_df = pd.DataFrame(
         columns=[
@@ -188,11 +270,29 @@ def main(args):
         choices = eval(dataset[i]["choices"])
         answer = dataset[i]["answer"]
 
-        verbalised_text = few_shot_prompt(FEW_SHOT_EXAMPLES, question, choices, answer)
-
-        prediction = predict_gpt3(
-            openai_client, gpt3_model_name, verbalised_text, gpt3_generation_configs
-        )
+        if args.model_type == "gpt4":
+            verbalised_text = few_shot_prompt(
+                FEW_SHOT_EXAMPLES, question, choices, answer
+            )
+            prediction = predict_gpt3(
+                openai_client, gpt3_model_name, verbalised_text, gpt3_generation_configs
+            )
+        elif args.model_type == "llama":
+            verbalised_text = few_shot_prompt(
+                FEW_SHOT_EXAMPLES, question, choices, answer
+            )
+            prediction = predict_llama(
+                llama_model,
+                llama_tokenizer,
+                verbalised_text,
+                llama_max_new_tokens,
+                device,
+            )
+        elif args.model_type == "claude":
+            verbalised_text = few_shot_prompt(
+                FEW_SHOT_EXAMPLES, question, choices, answer
+            )
+            prediction = predict_claude(claude_client, verbalised_text)
 
         try:
             model_answer = prediction.split("Your Response: ")[-1].strip()
@@ -235,6 +335,12 @@ if __name__ == "__main__":
         type=str,
         required=True,
         help="Configuration of the mini-mmlu dataset to use",
+    )
+    parser.add_argument(
+        "--model_type",
+        type=str,
+        required=True,
+        help="Type of model to use (gpt4, llama, or claude)",
     )
     args = parser.parse_args()
     main(args)
