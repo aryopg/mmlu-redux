@@ -27,6 +27,6 @@ dependencies:
   - pandas
   - tqdm
   - pynvml
-  - transformers
+  - transformers == 4.40.1 # rob_m: required for llama 3 support
   - tokenizers
   - openai
