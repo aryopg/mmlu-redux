@@ -44,6 +44,7 @@ def predict_gpt4(client, model_name, prompt, generation_configs):
     return prediction
 
 def predict_llama(model, tokenizer, prompt, max_new_tokens, device):
+    ABCD_INDEX = [int(tokenizer.vocab[c]) for c in "ABCD"]
     input_ids = tokenizer(prompt, return_tensors="pt").input_ids.to(device)
     attention_mask = torch.ones_like(input_ids).to(device)
     pad_token_id = tokenizer.pad_token_id
@@ -55,10 +56,13 @@ def predict_llama(model, tokenizer, prompt, max_new_tokens, device):
         max_new_tokens=max_new_tokens, 
         num_return_sequences=1,
         do_sample=False,
-        temperature=0.0
+        temperature=0.0,
+        output_scores=True,
+        return_dict_in_generate=True,
     )
-    prediction = tokenizer.decode(output[0, input_ids.shape[1]:], skip_special_tokens=True)
-    return prediction
+    # prediction = tokenizer.decode(output["sequences"][0][input_ids.shape[1]:], skip_special_tokens=True)
+    ABCD_ANSWER = output["scores"][0][0][ABCD_INDEX].argmax().cpu().item()
+    return ABCD_ANSWER
 
 def predict_claude(client, prompt):
     response = client.completion(
