@@ -45,7 +45,8 @@ def predict_gpt4(client, model_name, prompt, generation_configs):
 
 def predict_llama(model, tokenizer, prompt, max_new_tokens, device):
     ABCD_INDEX = [int(tokenizer.vocab[c]) for c in "ABCD"]
-    input_ids = tokenizer(prompt, return_tensors="pt").input_ids.to(device)
+    # Use correct chat/IF-template
+    input_ids = tokenizer.apply_chat_template(prompt, return_tensors="pt", add_generation_prompt=True).to(device)
     attention_mask = torch.ones_like(input_ids).to(device)
     pad_token_id = tokenizer.pad_token_id
 
