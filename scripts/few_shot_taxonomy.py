@@ -39,13 +39,13 @@ INSTRUCTION = (
     "3.2 If more than one, classify the issue as Multiple Correct Answer.\n"
     "3.3 If no correct answer, classify the issue as No Correct Answer.\n"
     "4. Ground Truth Answer Evaluation: Is the ground truth answer correct?\n"
-    "4.1. If Yes, classify as Correct.\n"
+    "4.1. If Yes, classify as ok.\n"
     "4.2. If No, classify as Wrong Groundtruth.\n"
-    "Provide your assessment in JSON format with keys 'Question Presentation', 'MC Options Presentation', 'Answer Evaluation', 'Ground Truth Answer Evaluation', 'Classification', 'Answer'. "
-    "The 'classification' is either Correct, Wrong Groundtruth, No Correct Answer, Multiple Correct Answer, Bad Options Clarity, or Bad Question Clarity. "
-    "If you classify the issue as Wrong Groundtruth, provide your own answer to the question with key 'answer', else return empty string in key 'answer'.\n\n"
+    "Provide your assessment in JSON format with keys 'Question Presentation', 'MC Options Presentation', 'Answer Evaluation', 'Ground Truth Answer Evaluation', 'Classification'. "
+    "The 'classification' is either OK, Wrong Groundtruth, No Correct Answer, Multiple Correct Answer, Bad Options Clarity, or Bad Question Clarity.\n\n"
+    "FOLLOW THE EXACT EXAMPLE ANSWER FORMAT WITHOUT PROVIDING EXPLANATION"
     "# Example Answer:\n"
-    "{'Question Presentation': 'OK', 'MC Options Presentation': 'OK', 'Answer Evaluation': 'One', 'Ground Truth Answer Evaluation': 'Wrong Groundtruth', 'classification': 'Wrong Groundtruth', 'answer': 'C'}"
+    "{\"Question Presentation\": \"OK\", \"MC Options Presentation\": \"OK\", \"Answer Evaluation\": \"One\", \"Ground Truth Answer Evaluation\": \"Correct\", \"classification\": \"ok\"}"
 )
 
 CHOICES_DELIMITER = "\n"
