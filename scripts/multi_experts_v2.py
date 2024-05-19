@@ -12,18 +12,21 @@ from transformers import LlamaForCausalLM, LlamaTokenizerFast, AutoModelForCausa
 import anthropic
 from huggingface_hub import login
 import torch
+import ast
 
 CHOICES_DELIMITER = "\n"
 QUESTION_VERBALISER = "Question: {question}\n{choices}\nAnswer: "
+SYSTEM_PROMPT = "Given a question and its choices, determine the most correct answer (A, B, C, or D). ONLY RESPOND WITH ONE LETTER."
 
-def verbaliser(question, choices, answer):
+def verbaliser(question, choices, answer, system_prompt=SYSTEM_PROMPT):
+    choices = ast.literal_eval(choices)
     verbalised_choices = CHOICES_DELIMITER.join(
         [f"{chr(65 + i)}. {choice}" for i, choice in enumerate(choices)]
     )
     return [
         {
             "role": "system",
-            "content": "Given a question and its choices, determine the most correct answer (A, B, C, or D). ONLY RESPOND WITH ONE LETTER.",
+            "content": system_prompt,
         },
         {
             "role": "user",
@@ -43,7 +46,7 @@ def predict_gpt4(client, model_name, prompt, generation_configs):
         prediction = ""
     return prediction
 
-def predict_llama(model, tokenizer, prompt, max_new_tokens, device):
+def predict_llama(model, tokenizer, prompt, max_new_tokens, device, constrained = True):
     ABCD_INDEX = [int(tokenizer.vocab[c]) for c in "ABCD"]
     # Use correct chat/IF-template
     input_ids = tokenizer.apply_chat_template(prompt, return_tensors="pt", add_generation_prompt=True).to(device)
@@ -61,9 +64,11 @@ def predict_llama(model, tokenizer, prompt, max_new_tokens, device):
         output_scores=True,
         return_dict_in_generate=True,
     )
-    # prediction = tokenizer.decode(output["sequences"][0][input_ids.shape[1]:], skip_special_tokens=True)
-    ABCD_ANSWER = output["scores"][0][0][ABCD_INDEX].argmax().cpu().item()
-    return ABCD_ANSWER
+    if constrained:
+        prediction = output["scores"][0][0][ABCD_INDEX].argmax().cpu().item()
+    else:
+        prediction = tokenizer.decode(output["sequences"][0][input_ids.shape[1]:], skip_special_tokens=True)
+    return prediction
 
 def predict_claude(client, prompt):
     response = client.completion(
