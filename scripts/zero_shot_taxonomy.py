@@ -21,6 +21,8 @@ from transformers import LlamaForCausalLM, LlamaTokenizerFast, AutoTokenizer, Au
 import anthropic
 from huggingface_hub import login
 import torch
+from pathlib import Path
+from api_keys import OPENAI_API_KEY, ANTHROPIC_API_KEY, HUGGINGFACE_API_KEY
 
 INSTRUCTION = (
     "# Task:\n"
@@ -40,10 +42,10 @@ INSTRUCTION = (
     "4.1. If Yes, classify as ok.\n"
     "4.2. If No, classify as Wrong Groundtruth.\n"
     "Provide your assessment in JSON format with keys 'Question Presentation', 'MC Options Presentation', 'Answer Evaluation', 'Ground Truth Answer Evaluation', 'Classification'. "
-    "The 'classification' is either OK, Wrong Groundtruth, No Correct Answer, Multiple Correct Answer, Bad Options Clarity, or Bad Question Clarity.\n\n"
+    "The 'classification' is either OK, Wrong Groundtruth, No Correct Answer, Multiple Correct Answers, Bad Options Clarity, or Bad Question Clarity.\n\n"
     "FOLLOW THE EXACT EXAMPLE ANSWER FORMAT WITHOUT PROVIDING EXPLANATION"
     "# Example Answer:\n"
-    "{\"Question Presentation\": \"OK\", \"MC Options Presentation\": \"OK\", \"Answer Evaluation\": \"One\", \"Ground Truth Answer Evaluation\": \"Correct\", \"classification\": \"ok\"}"
+    "{\"Question Presentation\": \"OK\", \"MC Options Presentation\": \"OK\", \"Answer Evaluation\": \"One\", \"Ground Truth Answer Evaluation\": \"Correct\", \"Classification\": \"OK\"}"
 )
 
 CHOICES_DELIMITER = "\n"
@@ -90,13 +92,16 @@ def predict_llama(model, tokenizer, prompt, max_new_tokens, device):
     return prediction
 
 def predict_claude(client, prompt):
-    response = client.completions.create(
+    response = client.messages.create(
         model="claude-3-opus-20240229",
-        prompt=prompt,
-        max_tokens_to_sample=200,
-        stop_sequences=["\n"]
+        max_tokens=200,
+        temperature=0.0,
+        system=INSTRUCTION,
+        messages=[
+            {"role": "user", "content": prompt}
+        ]
     )
-    prediction = response.completion
+    prediction = response.content[0].text
     return prediction
 
 def compute_metrics(pred_df):
@@ -130,9 +135,9 @@ def main(args):
 
     if args.model_type == "gpt4":
         openai_client = OpenAI(
-            api_key=os.getenv("OPENAI_API_KEY", ""),
+            api_key=os.getenv("OPENAI_API_KEY", OPENAI_API_KEY),
         )
-        gpt4_model_name = "gpt-4-turbo"
+        gpt4_model_name = "gpt-4o"
         gpt4_generation_configs = {
             "temperature": 0.0,
             "top_p": 1,
@@ -141,15 +146,18 @@ def main(args):
             "max_tokens": 200,
         }
     elif args.model_type == "llama":
-        login("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")
+        login(HUGGINGFACE_API_KEY)
         llm_path = "meta-llama/Meta-Llama-3-70B-Instruct"
         llama_tokenizer = AutoTokenizer.from_pretrained(llm_path)
-        llama_model = AutoModelForCausalLM.from_pretrained(llm_path).to(device)
+        llama_model = AutoModelForCausalLM.from_pretrained(llm_path,
+                                                           device_map="auto",
+                                                           torch_dtype=torch.bfloat16,
+                                                           cache_dir="/mnt/ssd/llms").to(device)
         llama_model.eval()
         llama_max_new_tokens = 200
     elif args.model_type == "claude":
         claude_client = anthropic.Anthropic(
-            api_key=os.getenv("ANTHROPIC_API_KEY", ""),
+            api_key=os.getenv("ANTHROPIC_API_KEY", ANTHROPIC_API_KEY),
         )
     else:
         raise ValueError("Invalid model type. Choose from 'gpt4', 'llama', or 'claude'.")
@@ -169,17 +177,15 @@ def main(args):
             prediction = predict_llama(llama_model, llama_tokenizer, INSTRUCTION + "\n\n" + verbalised_text, llama_max_new_tokens, device) 
             prediction = extract_braced_content(prediction)
         elif args.model_type == "claude":
-            prediction = predict_claude(claude_client, INSTRUCTION + "\n\n" + verbalised_text)
+            prediction = predict_claude(claude_client, verbalised_text)
+            print(prediction)
         
         try:
             model_answer = prediction
-            print("model_answer_v1", model_answer)
             if model_answer.startswith("{") and model_answer.endswith("}"):
                 model_answer = model_answer.replace("classification", "Classification")
                 prediction_json = json.loads(model_answer)
-                print("predicted_json", prediction_json)
                 predicted_error_type = prediction_json["Classification"]
-                print("predicted_error_type", predicted_error_type)
             else:
                 model_answer = prediction
                 predicted_error_type = "Invalid Prediction"

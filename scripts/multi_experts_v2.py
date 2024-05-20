@@ -8,11 +8,13 @@ load_dotenv(".env")
 import pandas as pd
 from datasets import load_dataset
 from openai import OpenAI
-from transformers import LlamaForCausalLM, LlamaTokenizerFast, AutoModelForCausalLM
+from transformers import LlamaForCausalLM, LlamaTokenizerFast, AutoModelForCausalLM, AutoTokenizer
 import anthropic
 from huggingface_hub import login
 import torch
 import ast
+from tqdm import tqdm
+from api_keys import OPENAI_API_KEY, ANTHROPIC_API_KEY, HUGGINGFACE_API_KEY
 
 CHOICES_DELIMITER = "\n"
 QUESTION_VERBALISER = "Question: {question}\n{choices}\nAnswer: "
@@ -48,8 +50,13 @@ def predict_gpt4(client, model_name, prompt, generation_configs):
 
 def predict_llama(model, tokenizer, prompt, max_new_tokens, device, constrained = True):
     ABCD_INDEX = [int(tokenizer.vocab[c]) for c in "ABCD"]
+
+    if isinstance(prompt, str):
+        raise ValueError("The prompt should be a list of dictionaries, not a string.")
+
     # Use correct chat/IF-template
     input_ids = tokenizer.apply_chat_template(prompt, return_tensors="pt", add_generation_prompt=True).to(device)
+    #input_ids = tokenizer.encode(prompt, return_tensors="pt").to(device)
     attention_mask = torch.ones_like(input_ids).to(device)
     pad_token_id = tokenizer.pad_token_id
 
@@ -71,22 +78,27 @@ def predict_llama(model, tokenizer, prompt, max_new_tokens, device, constrained 
     return prediction
 
 def predict_claude(client, prompt):
-    response = client.completion(
-        prompt=prompt,
-        model="claude-3-opus",
-        max_tokens_to_sample=1,
+    response = client.messages.create(
+        model="claude-3-opus-20240229",
+        max_tokens=200,
+        temperature=0.0,
+        system=SYSTEM_PROMPT,
+        messages=[
+            {"role": "user", "content": prompt}
+        ]
     )
-    return response
+    prediction = response.content[0].text
+    return prediction
 
 def main(args):
-    dataset = load_dataset("edinburgh-dawg/mini-mmlu", args.config, split="test")
+    dataset = load_dataset("edinburgh-dawg/mini-mmlu-fixed", args.config, split="test")
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     openai_client = OpenAI(
-        api_key=os.getenv("OPENAI_API_KEY", ""),
+        api_key=os.getenv("OPENAI_API_KEY", OPENAI_API_KEY),
     )
-    gpt4_model_name = "gpt-4-turbo"
+    gpt4_model_name = "gpt-3.5-turbo-0125"
     gpt4_generation_configs = {
         "temperature": 0,
         "top_p": 1,
@@ -95,7 +107,7 @@ def main(args):
         "max_tokens": 1,
     }
 
-    login("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")
+    login(HUGGINGFACE_API_KEY)
     llm_path = "meta-llama/Meta-Llama-3-8B-Instruct"
     llama_tokenizer = LlamaTokenizerFast.from_pretrained(llm_path)
     llama_model = LlamaForCausalLM.from_pretrained(llm_path).to(device)
@@ -103,7 +115,7 @@ def main(args):
     llama_max_new_tokens = 1
 
     claude_client = anthropic.Client(
-        api_key=os.getenv("ANTHROPIC_API_KEY", ""),
+        api_key=os.getenv("ANTHROPIC_API_KEY", ANTHROPIC_API_KEY),
     )
 
     pred_df = pd.DataFrame(
@@ -117,7 +129,7 @@ def main(args):
         ]
     )
 
-    for i in range(len(dataset)):
+    for i in tqdm(range(len(dataset))):
         verbalised_text = verbaliser(
             dataset[i]["question"], dataset[i]["choices"], dataset[i]["answer"]
         )
@@ -126,7 +138,8 @@ def main(args):
             openai_client, gpt4_model_name, verbalised_text, gpt4_generation_configs
         )
         prediction_llama = predict_llama(
-            llama_model, llama_tokenizer, verbalised_text[1]["content"], llama_max_new_tokens, device
+            llama_model, llama_tokenizer, verbalised_text, llama_max_new_tokens, device
+            #llama_model, llama_tokenizer, verbalised_text[1]["content"], llama_max_new_tokens, device
         )
         prediction_claude = predict_claude(
             claude_client, verbalised_text[1]["content"]
@@ -140,6 +153,15 @@ def main(args):
             prediction_llama,
             prediction_claude,
         ]
+
+    def get_final_answer(row):
+        unique_predictions = row[["prediction_gpt4", "prediction_llama", "prediction_claude"]].nunique()
+        if unique_predictions == 3:
+            return "3 different Answers"
+        else:
+            return row[["prediction_gpt4", "prediction_llama", "prediction_claude"]].mode()[0]
+
+    pred_df["final_answer"] = pred_df.apply(get_final_answer, axis=1)
 
     pred_df.to_csv(f"mmlu_multi_experts_{args.config}.csv", index=False)
 
