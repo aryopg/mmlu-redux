@@ -14,7 +14,13 @@ from huggingface_hub import login
 import torch
 import ast
 from tqdm import tqdm
-from api_keys import OPENAI_API_KEY, ANTHROPIC_API_KEY, HUGGINGFACE_API_KEY
+from dotenv import load_dotenv
+
+load_dotenv(dotenv_path=".env_example")
+
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
 
 CHOICES_DELIMITER = "\n"
 QUESTION_VERBALISER = "Question: {question}\n{choices}\nAnswer: "
