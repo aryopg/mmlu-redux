@@ -19,7 +19,7 @@ from api_keys import OPENAI_API_KEY, ANTHROPIC_API_KEY, HUGGINGFACE_API_KEY
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.taxonomy.data_utils import verbaliser, normalize_answer, extract_braced_content
-from src.taxonomy.model_utils import predict_gpt4, predict_llama, predict_claude
+from src.taxonomy.model_utils_cot import predict_gpt4, predict_llama, predict_claude
 from src.taxonomy.evaluations import compute_metrics
 
 def main(args):
@@ -100,7 +100,7 @@ def main(args):
     print(metrics)
     
 
-    pred_df.to_csv(f"mini_mmlu_groundtruth_correctness_zeroshot_{args.model_type}_{args.config}.csv", index=False)
+    pred_df.to_csv(f"mini_mmlu_groundtruth_correctness_zeroshot_cot_{args.model_type}_{args.config}.csv", index=False)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Evaluate models on Mini-MMLU dataset")
