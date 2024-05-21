@@ -31,7 +31,7 @@ from src.taxonomy.evaluations import compute_metrics
 
 
 def main(args):
-    dataset = load_dataset("edinburgh-dawg/mini-mmlu", args.config, split="test")
+    dataset = load_dataset("edinburgh-dawg/mini-mmlu", args.config, split="test", token=HF_READ_TOKEN)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -73,6 +73,11 @@ def main(args):
     parse_error_n = 0
     tqdm_bar = tqdm(enumerate(dataset), total=len(dataset))
     for idx, item in tqdm_bar:
+
+        if idx >= args.test_example_num:
+            logging.info(f"debug: {args.test_example_num} examples - exit")
+            break
+
         question = item["question"]
         choices = item["choices"]
         answer = item["answer"]
@@ -115,9 +120,6 @@ def main(args):
             normalize_error_type(predicted_error_type),
         ]
 
-        if idx > 3:
-            break
-
     metrics = compute_metrics(pred_df)
     print(metrics)
 
@@ -131,5 +133,7 @@ if __name__ == "__main__":
                         help="Type of model to use for prediction")
     parser.add_argument("--config", type=str, required=True,
                         help="Configuration of the mini-mmlu dataset to use")
+    parser.add_argument("--test_example_num", type=int, required=False, default=None,
+                        help="The number of examples for debugging.")
     args = parser.parse_args()
     main(args)
