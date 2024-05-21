@@ -25,7 +25,7 @@ HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.taxonomy.data_utils import verbaliser, normalize_answer, extract_braced_content
-from src.taxonomy.model_utils import predict_gpt4, predict_llama, predict_claude
+from src.taxonomy.model_utils import predict_gpt4, predict_llama, predict_claude, INSTRUCTION 
 from src.taxonomy.evaluations import compute_metrics
 
 def main(args):
