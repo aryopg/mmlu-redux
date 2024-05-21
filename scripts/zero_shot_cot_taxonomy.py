@@ -14,7 +14,13 @@ from huggingface_hub import login
 import torch
 from pathlib import Path
 from transformers import LlamaForCausalLM, LlamaTokenizerFast, AutoTokenizer, AutoModelForCausalLM, pipeline
-from api_keys import OPENAI_API_KEY, ANTHROPIC_API_KEY, HUGGINGFACE_API_KEY
+from dotenv import load_dotenv
+
+load_dotenv(dotenv_path=".env_example")
+
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
