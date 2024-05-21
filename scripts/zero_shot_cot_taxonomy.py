@@ -1,4 +1,5 @@
 import argparse
+import logging
 import sys
 import os
 import json
@@ -20,13 +21,14 @@ load_dotenv(dotenv_path=".env_example")
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
-HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
+HF_READ_TOKEN = os.getenv("HF_READ_TOKEN")
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.taxonomy.data_utils import verbaliser, normalize_answer, extract_braced_content
-from src.taxonomy.model_utils_cot import predict_gpt4, predict_llama, predict_claude, INSTRUCTION 
+from src.taxonomy.data_utils import verbaliser, extract_braced_content, normalize_error_type
+from src.taxonomy.model_utils_cot import predict_gpt4, predict_llama, predict_claude, INSTRUCTION
 from src.taxonomy.evaluations import compute_metrics
+
 
 def main(args):
     dataset = load_dataset("edinburgh-dawg/mini-mmlu", args.config, split="test")
@@ -43,10 +45,10 @@ def main(args):
             "top_p": 1,
             "frequency_penalty": 0,
             "presence_penalty": 0,
-            "max_tokens": 200,
+            "max_tokens": 400,
         }
     elif args.model_type == "llama":
-        login(HUGGINGFACE_API_KEY)
+        login(HF_READ_TOKEN)
         llm_path = "meta-llama/Meta-Llama-3-70B-Instruct"
         llama_tokenizer = AutoTokenizer.from_pretrained(llm_path)
         llama_model = AutoModelForCausalLM.from_pretrained(llm_path,
@@ -62,26 +64,34 @@ def main(args):
     else:
         raise ValueError("Invalid model type. Choose from 'gpt4', 'llama', or 'claude'.")
 
-    pred_df = pd.DataFrame(columns=["question", "choices", "answer", "error_type", "model_answer", "predicted_error_type"])
+    pred_df = pd.DataFrame(
+        columns=["question", "choices", "answer", "error_type", "model_answer", "predicted_error_type"])
 
-    for i in tqdm(range(len(dataset))):
-        question = dataset[i]["question"]
-        choices = dataset[i]["choices"]
-        answer = dataset[i]["answer"]
-        
+    if not os.path.exists("./outputs/zeroshotcot_taxonomy_evaluation/"):
+        os.makedirs("./outputs/zeroshotcot_taxonomy_evaluation/")
+
+    parse_error_n = 0
+    tqdm_bar = tqdm(enumerate(dataset), total=len(dataset))
+    for idx, item in tqdm_bar:
+        question = item["question"]
+        choices = item["choices"]
+        answer = item["answer"]
+
         verbalised_text = verbaliser(question, choices, answer)
-        
+
         if args.model_type == "gpt4":
             prediction = predict_gpt4(openai_client, gpt4_model_name, verbalised_text, gpt4_generation_configs)
         elif args.model_type == "llama":
-            prediction = predict_llama(llama_model, llama_tokenizer, INSTRUCTION + "\n\n" + verbalised_text, llama_max_new_tokens, device) 
+            prediction = predict_llama(llama_model, llama_tokenizer, INSTRUCTION + "\n\n" + verbalised_text,
+                                       llama_max_new_tokens, device)
             prediction = extract_braced_content(prediction)
         elif args.model_type == "claude":
             prediction = predict_claude(claude_client, verbalised_text)
             print(prediction)
-        
+
         try:
             model_answer = prediction
+            model_answer = model_answer.split("\n")[-1]
             if model_answer.startswith("{") and model_answer.endswith("}"):
                 model_answer = model_answer.replace("classification", "Classification")
                 prediction_json = json.loads(model_answer)
@@ -92,21 +102,28 @@ def main(args):
         except (json.JSONDecodeError, KeyError, IndexError) as e:
             model_answer = prediction
             predicted_error_type = "Invalid Prediction"
+            logging.error(e)
+            parse_error_n += 1
 
-        pred_df.loc[i] = [
+        tqdm_bar.set_description(f"parse error: {parse_error_n}/{idx + 1}")
+        pred_df.loc[idx] = [
             question,
             choices,
             answer,
-            normalize_answer(dataset[i]["error_type"]),
+            normalize_error_type(item["error_type"]),
             model_answer,
-            normalize_answer(predicted_error_type),
+            normalize_error_type(predicted_error_type),
         ]
+
+        if idx > 3:
+            break
 
     metrics = compute_metrics(pred_df)
     print(metrics)
-    
 
-    pred_df.to_csv(f"mini_mmlu_groundtruth_correctness_zeroshot_cot_{args.model_type}_{args.config}.csv", index=False)
+    pred_df.to_csv(f"./outputs/zeroshotcot_taxonomy_evaluation/"
+                   f"mini_mmlu_groundtruth_correctness_zeroshot_cot_{args.model_type}_{args.config}.csv", index=False)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Evaluate models on Mini-MMLU dataset")
