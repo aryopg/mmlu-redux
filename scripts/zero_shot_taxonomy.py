@@ -69,9 +69,6 @@ def main(args):
     if not os.path.exists("./outputs/zeroshot_taxonomy_evaluation/"):
         os.makedirs("./outputs/zeroshot_taxonomy_evaluation/")
 
-    print("ssss")
-    exit()
-
     for i in tqdm(range(len(dataset))):
         question = dataset[i]["question"]
         choices = dataset[i]["choices"]
