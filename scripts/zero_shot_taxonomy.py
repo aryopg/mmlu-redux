@@ -26,75 +26,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.taxonomy.data_utils import verbaliser, normalize_error_type, extract_braced_content
 from src.taxonomy.model_utils import predict_gpt4, predict_llama, predict_claude, INSTRUCTION
-from src.taxonomy.evaluations import compute_metrics, few_shot_prompt
-
-FEW_SHOT_EXAMPLES = [
-    {
-        "question": "What is the capital of France?",
-        "choices": ["Berlin", "Madrid", "Paris", "Rome"],
-        "answer": 2,
-        "response": {
-            "Question Presentation": "OK",
-            "MC Options Presentation": "OK",
-            "Answer Evaluation": "One",
-            "Ground Truth Answer Evaluation": "Correct",
-            "Classification": "Correct",
-            "Answer": "",
-        },
-    },
-    {
-        "question": "Which planet is known as the Red Planet?",
-        "choices": ["Earth", "Mars", "Jupiter", "Saturn"],
-        "answer": 1,
-        "response": {
-            "Question Presentation": "OK",
-            "MC Options Presentation": "OK",
-            "Answer Evaluation": "One",
-            "Ground Truth Answer Evaluation": "Correct",
-            "Classification": "Correct",
-            "Answer": "",
-        },
-    },
-    {
-        "question": "What is the largest ocean on Earth?",
-        "choices": ["Atlantic Ocean", "Indian Ocean", "Arctic Ocean", "Pacific Ocean"],
-        "answer": 1,  # Incorrect ground truth
-        "response": {
-            "Question Presentation": "OK",
-            "MC Options Presentation": "OK",
-            "Answer Evaluation": "One",
-            "Ground Truth Answer Evaluation": "Wrong Groundtruth",
-            "Classification": "Wrong Groundtruth",
-            "Answer": "D",
-        },
-    },
-    {
-        "question": "Which of the following is a fruit?",
-        "choices": ["Carrot", "Potato", "Tomato", "Cucumber"],
-        "answer": 2,
-        "response": {
-            "Question Presentation": "OK",
-            "MC Options Presentation": "Bad Options Clarity",
-            "Answer Evaluation": "N/A",
-            "Ground Truth Answer Evaluation": "N/A",
-            "Classification": "Bad Options Clarity",
-            "Answer": "",
-        },
-    },
-    {
-        "question": "What is the meaning of life?",
-        "choices": ["42", "Happiness", "Success", "Love"],
-        "answer": 0,
-        "response": {
-            "Question Presentation": "Bad Question Clarity",
-            "MC Options Presentation": "N/A",
-            "Answer Evaluation": "N/A",
-            "Ground Truth Answer Evaluation": "N/A",
-            "Classification": "Bad Question Clarity",
-            "Answer": "",
-        },
-    },
-]
+from src.taxonomy.evaluations import compute_metrics
 
 
 def main(args):
@@ -134,55 +66,38 @@ def main(args):
     pred_df = pd.DataFrame(
         columns=["question", "choices", "answer", "error_type", "model_answer", "predicted_error_type"])
 
-    if not os.path.exists("./outputs/fewshot_taxonomy_evaluation/"):
-        os.makedirs("./outputs/fewshot_taxonomy_evaluation/")
+    if not os.path.exists("./outputs/zeroshot_taxonomy_evaluation/"):
+        os.makedirs("./outputs/zeroshot_taxonomy_evaluation/")
 
-    for i in tqdm(range(3)):
+    for i in tqdm(range(len(dataset))):
         question = dataset[i]["question"]
         choices = dataset[i]["choices"]
         answer = dataset[i]["answer"]
 
+        verbalised_text = verbaliser(question, choices, answer)
+
         if args.model_type == "gpt4":
-            verbalised_text = few_shot_prompt(
-                FEW_SHOT_EXAMPLES, question, choices, answer
-            )
-            prediction = predict_gpt4(
-                openai_client, gpt4_model_name, verbalised_text, gpt4_generation_configs
-            )
+            prediction = predict_gpt4(openai_client, gpt4_model_name, verbalised_text, gpt4_generation_configs)
         elif args.model_type == "llama":
-            verbalised_text = few_shot_prompt(
-                FEW_SHOT_EXAMPLES, question, choices, answer
-            )
-            prediction = predict_llama(
-                llama_model,
-                llama_tokenizer,
-                verbalised_text,
-                llama_max_new_tokens,
-                device,
-            )
+            prediction = predict_llama(llama_model, llama_tokenizer, INSTRUCTION + "\n\n" + verbalised_text,
+                                       llama_max_new_tokens, device)
             prediction = extract_braced_content(prediction)
         elif args.model_type == "claude":
-            verbalised_text = few_shot_prompt(
-                FEW_SHOT_EXAMPLES, question, choices, answer
-            )
             prediction = predict_claude(claude_client, verbalised_text)
+            print(prediction)
 
         try:
-            model_answer = prediction.split("Your Response: ")[-1].strip()
+            model_answer = prediction
             if model_answer.startswith("{") and model_answer.endswith("}"):
+                model_answer = model_answer.replace("classification", "Classification")
                 prediction_json = json.loads(model_answer)
                 predicted_error_type = prediction_json["Classification"]
-                predicted_answer = prediction_json.get("Answer", "")
             else:
                 model_answer = prediction
                 predicted_error_type = "Invalid Prediction"
-                predicted_answer = ""
         except (json.JSONDecodeError, KeyError, IndexError) as e:
             model_answer = prediction
             predicted_error_type = "Invalid Prediction"
-            predicted_answer = ""
-            print(f"Error parsing prediction for instance {i}: {str(e)}")
-            print(f"Model answer: {model_answer}")
 
         pred_df.loc[i] = [
             question,
@@ -194,16 +109,16 @@ def main(args):
         ]
 
     metrics = compute_metrics(pred_df)
-    print(f"Metrics for {args.config}:")
     print(metrics)
 
-    pred_df.to_csv(f"./outputs/fewshot_taxonomy_evaluation/"
-                   f"mini_mmlu_groundtruth_correctness_fewshot_{args.model_type}_{args.config}.csv", index=False)
+    pred_df.to_csv(f"./outputs/zeroshot_taxonomy_evaluation/"
+                   f"mini_mmlu_groundtruth_correctness_zeroshot_{args.model_type}_{args.config}.csv", index=False)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Evaluate models on Mini-MMLU dataset")
-    parser.add_argument("--model_type", type=str, required=True, choices=["gpt4", "llama", "claude"],
+    parser.add_argument("--model_type", type=str, required=True,
+                        choices=["gpt4", "llama", "claude"],
                         help="Type of model to use for prediction")
     parser.add_argument("--config", type=str, required=True,
                         help="Configuration of the mini-mmlu dataset to use")
