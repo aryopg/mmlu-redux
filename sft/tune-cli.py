@@ -8,6 +8,8 @@ import torch
 import argparse
 import logging
 
+import re
+
 import wandb
 
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig, TrainingArguments, EvalPrediction
@@ -23,10 +25,39 @@ from huggingface_hub import HfApi
 from typing import Dict
 
 os.environ['TOKENIZERS_PARALLELISM'] = "false"
-os.environ["WANDB_PROJECT"] = 'mini-llm_v1'
+os.environ["WANDB_PROJECT"] = 'mmlu-llm_v1'
 
 logger = logging.getLogger(name=__file__)
 logger.setLevel(logging.INFO)
+
+
+def create_model_path(args):
+    # Sanitize the model ID to replace '/' with '_' to avoid directory path issues
+    sanitized_model_id = re.sub(r'[/\\]', '_', args.model.split("/")[-1])
+    
+    path_parts = [
+        sanitized_model_id,
+        f"bs={args.batch_size}",
+        f"lr={args.learning_rate:.0e}",
+        f"collator={args.collator}",
+        f"gas={args.gradient_accumulation_steps}",
+        f"ms={args.max_steps}",
+        f"lrank={args.lora_rank}",
+        f"ws={args.warmup_steps}"
+    ]
+    
+    # Combine all parts with underscores
+    path = "_".join(path_parts)
+
+    # Sanitise, due to the following:
+    # huggingface_hub.utils._validators.HFValidationError: Repo id must [..]
+    # path = path.replace('_', '-')
+    path = path.replace('=', '_')
+    
+    return path
+
+
+
 
 # For debugging/prototyping:
 # PYTHONPATH=. ./cli/mt-sft-cli.py --use-bf16 --learning-rate 1e-4 --batch-size 4 --collator completion --gradient-accumulation-steps 1 --max-steps 8 --model google/gemma-2b --lora-rank 8 --warmup-steps 4 --max-seq-length 4096
@@ -159,9 +190,8 @@ def main(argv):
 
     collator = None
     if args.collator in {"completion"}:
-        _, user_template, assistant_template = extract_templates(tokenizer)
-        assert assistant_template == "<|im_start|>assistant"
-        assert user_template == "<|im_start|>user"
+        assistant_template = "<|im_start|>assistant"
+        user_template ="<|im_start|>user"
 
         collator = DataCollatorForCompletionOnlyLM(tokenizer=tokenizer,
                                                    response_template=assistant_template,
