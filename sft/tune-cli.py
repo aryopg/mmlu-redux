@@ -13,7 +13,7 @@ import wandb
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig, TrainingArguments, EvalPrediction
 from transformers.utils import is_bitsandbytes_available, is_flash_attn_2_available
 
-from datasets import load_dataset, interleave_datasets
+from datasets import load_dataset, interleave_datasets, concatenate_datasets
 
 from trl import SFTTrainer, setup_chat_format, DataCollatorForCompletionOnlyLM
 from peft import LoraConfig
@@ -59,7 +59,7 @@ def main(argv):
     # Parse arguments
     args = parser.parse_args()
 
-    use_bf16 = check_bf16_support(args.use_bf16)
+    use_bf16 = args.use_bf16
 
     model_id = args.model
 
@@ -88,42 +88,74 @@ def main(argv):
     if tokenizer.chat_template is None:
         model, tokenizer = setup_chat_format(model, tokenizer, format="chatml")
 
-    fhir_ds = load_dataset(args.fhir_dataset)
-    icd10_ds = load_dataset(args.icd10_dataset)
+    ds_id = 'edinburgh-dawg/labelchaos'
 
-    DEFAULT_INSTRUCTION_FHIR = "Convert the clinical note below into HL7 FHIR R4 format in JSON, adhering to these guidelines. Include only data explicitly mentioned in the note. Avoid adding, inferring, or imputing values not present in the text. Ensure to incorporate all information provided in the clinical note and mandatory fields required for a valid FHIR resource. Your output must strictly conform to the FHIR R4 JSON structure, focusing on accuracy and adherence to the specified FHIR standards."
+    subset_lst = ['bad_options_clarity', 'bad_questions_clarity', 'clean', 'multiple_correct_answers', 'no_correct_answer', 'wrong_groundtruth']
+    subset_id_to_ds = {k: load_dataset(ds_id, k) for k in subset_lst}
 
-    DEFAULT_INSTRUCTION_ICD10 = "Extract the ICD-10 codes from the following clinical text. Use the information provided in the text and apply relevant medical knowledge to identify the appropriate ICD-10 codes. The extracted codes should be specific to the conditions mentioned in the text and adhere to the ICD-10 classification system. Avoid assumptions or inferences not supported by the text. Ensure that the codes reflect the diagnoses, symptoms, or reasons for visit as described. Provide the codes as a list in the response."
+    DEFAULT_INSTRUCTION = "Analyse carefully the following multiple-choice question and corresponding answer, and tell me whether it is correct."
 
-    def create_conversation_fhir(example):
+    def create_conversation(example):
         messages = [
-            {"role": "system", "content": DEFAULT_INSTRUCTION_FHIR},
-            {"role": "user", "content": example["note"]},
-            {"role": "assistant", "content": example["fhir"]}
+            {"role": "system", "content": DEFAULT_INSTRUCTION},
+            {"role": "user", "content": example["input"]},
+            {"role": "assistant", "content": example["output"]}
         ]
         return {"messages": messages}
     
-    def create_conversation_icd10(example):
-        target = ', '.join(example["target"])
-        messages = [
-            {"role": "system", "content": DEFAULT_INSTRUCTION_ICD10},
-            {"role": "user", "content": example["text"]},
-            {"role": "assistant", "content": target}
-        ]
-        return {"messages": messages}
+    CHOICES_DELIMITER = "\n"
+    QUESTION_VERBALISER = ("{question}\n{choices}\nAnswer: {answer}")
 
-    fhir_ds = fhir_ds.map(create_conversation_fhir,
-                          remove_columns=fhir_ds["train"].features,
-                          batched=False,
-                          desc="Generating FHIR conversations")
+    def verbaliser(question, choices, answer):
+        verbalised_choices = CHOICES_DELIMITER.join([f"{chr(65 + i)}. {choice}" for i, choice in enumerate(choices)])
+        return QUESTION_VERBALISER.format(question=question, choices=verbalised_choices, answer=f"{chr(65+answer)}. {choices[answer]}")
+
+    subset_lst = ['bad_options_clarity', 'bad_questions_clarity', 'clean', 'multiple_correct_answers', 'no_correct_answer', 'wrong_groundtruth']
+    subset_id_to_ds = {k: load_dataset(ds_id, k) for k in subset_lst}
+
+    for subset_id, ds in subset_id_to_ds.items():
+        for split_name in ['train', 'validation', 'test']:
+            input_lst, output_lst = [], []
+
+            for entry in ds[split_name]:
+                input_str = verbaliser(entry['question'], entry['choices'],  entry['answer'])
+                input_lst += [input_str]
+                output_lst += [('yes' if 'clean' in subset_id else 'no')]
+
+            ds[split_name] = ds[split_name].add_column("input", input_lst)
+            ds[split_name] = ds[split_name].add_column("output", output_lst)
+
+    ok_train_ds = subset_id_to_ds['clean']['train']
+
+    not_ok_lst = [entry for entry in subset_lst if 'clean' not in entry]
+    not_ok_train_ds = concatenate_datasets([subset_id_to_ds[name]['train'] for name in not_ok_lst])
+
+    ok_train_ds = ok_train_ds.map(create_conversation,
+                                  remove_columns=ok_train_ds.features,
+                                  batched=False,
+                                  desc="Generating Yes conversations")
     
-    icd10_ds = icd10_ds.map(create_conversation_icd10,
-                            remove_columns=icd10_ds["train"].features,
-                            batched=False,
-                            desc="Generating ICD10 conversations")
+    not_ok_train_ds = not_ok_train_ds.map(create_conversation,
+                                          remove_columns=not_ok_train_ds.features,
+                                          batched=False,
+                                          desc="Generating No conversations")
 
-    train_ds = interleave_datasets([fhir_ds["train"], icd10_ds["train"]], probabilities=[0.5, 0.5], seed=42)
-    val_ds = interleave_datasets([fhir_ds["validation"], icd10_ds["val"]], probabilities=[0.5, 0.5], seed=42)
+    train_ds = interleave_datasets([ok_train_ds, not_ok_train_ds], probabilities=[0.5, 0.5], seed=42)
+
+    ok_dev_ds = subset_id_to_ds['clean']['validation']
+    not_ok_dev_ds = concatenate_datasets([subset_id_to_ds[name]['validation'] for name in not_ok_lst])
+
+    ok_dev_ds = ok_dev_ds.map(create_conversation,
+                              remove_columns=ok_dev_ds.features,
+                              batched=False,
+                              desc="Generating Yes conversations")
+    
+    not_ok_dev_ds = not_ok_dev_ds.map(create_conversation,
+                                      remove_columns=not_ok_dev_ds.features,
+                                      batched=False,
+                                      desc="Generating No conversations")
+
+    dev_ds = interleave_datasets([ok_dev_ds, not_ok_dev_ds], probabilities=[0.5, 0.5], seed=42)
 
     collator = None
     if args.collator in {"completion"}:
@@ -185,8 +217,7 @@ def main(argv):
     trainer = SFTTrainer(model=model,
                          tokenizer=tokenizer,
                          train_dataset=train_ds,
-                         eval_dataset=val_ds,
-                         compute_metrics=compute_metrics,
+                         eval_dataset=dev_ds,
                          data_collator=collator,
                          packing=False,
                          max_seq_length=args.max_seq_length,
