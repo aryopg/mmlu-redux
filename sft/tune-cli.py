@@ -20,9 +20,6 @@ from peft import LoraConfig
 
 from huggingface_hub import HfApi
 
-from minimt.utils import check_bf16_support, extract_templates, create_model_path, get_best_results
-from minimt.coding.utils import get_all_codes
-
 from typing import Dict
 
 os.environ['TOKENIZERS_PARALLELISM'] = "false"
@@ -149,13 +146,6 @@ def main(argv):
 
     logger.info(f'Output dir: {output_dir}')
 
-    # breakpoint()
-
-    icd10_diag_set, icd10_proc_set = get_all_codes()
-
-    from minimt.evaluation import compute_metrics as compute_metrics_
-    compute_metrics = None # lambda x: compute_metrics_(x, tokenizer, model, collator)
-
     training_kwargs = {'bf16': True} if use_bf16 else {}
     training_args = TrainingArguments(output_dir=output_dir,
                                       overwrite_output_dir=True,
@@ -206,38 +196,6 @@ def main(argv):
                          args=training_args)
 
     train_result = trainer.train()
-
-    # {'train_runtime': 241.7539, 'train_samples_per_second': 0.265, 'train_steps_per_second': 0.033, 'train_loss': 3.466222196817398, 'epoch': 0.01}
-    train_metrics = train_result.metrics
-        
-    trainer.log_metrics("train", train_metrics)
-    trainer.save_metrics("train", train_metrics)
-
-    # {'eval_loss': 3.608168125152588, 'eval_runtime': 38.7515, 'eval_samples_per_second': 2.4, 'eval_steps_per_second': 2.4, 'epoch': 0.01}
-    eval_metrics = trainer.evaluate()
-
-    trainer.log_metrics("eval", eval_metrics)
-    trainer.save_metrics("eval", eval_metrics)
-
-    trainer.save_state()
-
-    if wandb.run is not None:
-        wandb.finish()
-
-    repo_id = 'MiniML/mini-llm_v1'
-    best_results = get_best_results(repo_id)
-    
-    if best_results is None or best_results['eval_loss'] > eval_metrics['eval_loss']:
-        api = HfApi()
-
-        results = {**train_metrics, **eval_metrics, 'command': ' '.join(sys.argv)}
-        with open('new_best_results.json', 'w') as f:
-            json.dump(results, f, indent=4)
-        
-        api.upload_file(path_or_fileobj='new_best_results.json', path_in_repo='results.json', repo_id=repo_id, repo_type='model')
-
-        trainer.tokenizer.push_to_hub(repo_id=repo_id, private=True)
-        trainer.model.push_to_hub(repo_id=repo_id, private=True)
 
 
 if __name__ == '__main__':
