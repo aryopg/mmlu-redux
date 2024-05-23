@@ -58,7 +58,7 @@ def no_correct_answer(example):
 
     # we replace the correct answer with "all of the above"
     example['choices'].remove(example['choices'][example['answer']])
-    example['choices'][-1] = 'every option listed'
+    example['choices'].append('all of the above')
     example['answer'] = 'n/a'
 
     return example
