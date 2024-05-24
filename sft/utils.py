@@ -5,12 +5,38 @@ import hashlib
 
 import json
 import torch
+from torch.utils.data import Dataset
 
 from huggingface_hub import hf_hub_download
 from huggingface_hub.utils import EntryNotFoundError, RepositoryNotFoundError
 import transformers
+from transformers import AutoTokenizer
 
 from typing import Tuple, Dict
+
+
+class NestedKeyDataset(Dataset):
+    def __init__(
+        self,
+        dataset: Dataset,
+        key: str,
+        tokenizer: AutoTokenizer,
+    ):
+        self.dataset = dataset
+        self.key = key
+
+        self.tokenizer = tokenizer
+
+    def __len__(self):
+        return len(self.dataset)
+
+    def __getitem__(self, i):
+        prompt = self.tokenizer.apply_chat_template(
+            self.dataset[i][self.key][:-1],
+            tokenize=False,
+            add_generation_prompt=True,
+        )
+        return prompt
 
 def smart_tokenizer_and_embedding_resize(
     special_tokens_dict: Dict,
