@@ -1,5 +1,4 @@
 import argparse
-import logging
 import sys
 import os
 import json
@@ -25,27 +24,35 @@ HF_READ_TOKEN = os.getenv("HF_READ_TOKEN")
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.taxonomy.data_utils import verbaliser, extract_braced_content, normalize_error_type
-from src.taxonomy.model_utils_cot import predict_gpt4, predict_llama, predict_claude, INSTRUCTION
+from src.taxonomy.data_utils import verbaliser, normalize_error_type, extract_braced_content
+from src.taxonomy.model_utils_binary import predict_gpt4, predict_llama, predict_claude, INSTRUCTION
 from src.taxonomy.evaluations import compute_metrics
 
 
 def main(args):
+    log_file = "./outputs/zeroshot_taxonomy_binary_evaluation/log_file.txt"
+    
+    os.makedirs(os.path.dirname(log_file), exist_ok=True)
+    
+    with open(log_file, "a") as f:
+        f.write(f"Model Type: {args.model_type}\n")
+        f.write(f"Config: {args.config}\n")
+
     dataset = load_dataset("edinburgh-dawg/mini-mmlu", args.config, split="test", token=HF_READ_TOKEN)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    if args.model_type == "gpt4":
+    if args.model_type == "gpt4-turbo":
         openai_client = OpenAI(
             api_key=os.getenv("OPENAI_API_KEY", OPENAI_API_KEY),
         )
-        gpt4_model_name = "gpt-4o"
+        gpt4_model_name = "gpt-4-turbo"
         gpt4_generation_configs = {
             "temperature": 0.0,
             "top_p": 1,
             "frequency_penalty": 0,
             "presence_penalty": 0,
-            "max_tokens": 4096,
+            "max_tokens": 200,
         }
     elif args.model_type == "llama":
         login(HF_READ_TOKEN)
@@ -67,23 +74,17 @@ def main(args):
     pred_df = pd.DataFrame(
         columns=["question", "choices", "answer", "error_type", "model_answer", "predicted_error_type"])
 
-    if not os.path.exists("./outputs/zeroshotcot_taxonomy_evaluation/"):
-        os.makedirs("./outputs/zeroshotcot_taxonomy_evaluation/")
+    if not os.path.exists("./outputs/zeroshot_taxonomy_evaluation/"):
+        os.makedirs("./outputs/zeroshot_taxonomy_evaluation/")
 
-    parse_error_n = 0
-    tqdm_bar = tqdm(enumerate(dataset), total=len(dataset))
-    for idx, item in tqdm_bar:
-
-        if args.test_example_num is not None and idx >= args.test_example_num:
-            break
-
-        question = item["question"]
-        choices = item["choices"]
-        answer = item["answer"]
+    for i in tqdm(range(len(dataset))):
+        question = dataset[i]["question"]
+        choices = dataset[i]["choices"]
+        answer = dataset[i]["answer"]
 
         verbalised_text = verbaliser(question, choices, answer)
 
-        if args.model_type == "gpt4":
+        if args.model_type == "gpt4-turbo":
             prediction = predict_gpt4(openai_client, gpt4_model_name, verbalised_text, gpt4_generation_configs)
         elif args.model_type == "llama":
             prediction = predict_llama(llama_model, llama_tokenizer, INSTRUCTION + "\n\n" + verbalised_text,
@@ -91,11 +92,9 @@ def main(args):
             prediction = extract_braced_content(prediction)
         elif args.model_type == "claude":
             prediction = predict_claude(claude_client, verbalised_text)
-            print(prediction)
 
         try:
             model_answer = prediction
-            model_answer = model_answer.split("\n")[-1]
             if model_answer.startswith("{") and model_answer.endswith("}"):
                 model_answer = model_answer.replace("classification", "Classification")
                 prediction_json = json.loads(model_answer)
@@ -106,33 +105,38 @@ def main(args):
         except (json.JSONDecodeError, KeyError, IndexError) as e:
             model_answer = prediction
             predicted_error_type = "Invalid Prediction"
-            logging.error(e)
-            parse_error_n += 1
 
-        tqdm_bar.set_description(f"parse error: {parse_error_n}/{idx + 1}")
-        pred_df.loc[idx] = [
+        pred_df.loc[i] = [
             question,
             choices,
             answer,
-            normalize_error_type(item["error_type"]),
+            normalize_error_type(dataset[i]["error_type"]),
             model_answer,
             normalize_error_type(predicted_error_type),
         ]
 
-    metrics = compute_metrics(pred_df)
-    print(metrics)
+    pred_df["error_type_ok"] = pred_df["error_type"].apply(lambda x: "ok" if x == "ok" else "notok")
 
-    pred_df.to_csv(f"./outputs/zeroshotcot_taxonomy_evaluation/"
-                   f"doublecheck_mini_mmlu_groundtruth_correctness_zeroshot_cot_{args.model_type}_{args.config}.csv", index=False)
+    pred_df["predicted_error_type"] = pred_df["predicted_error_type"].str.strip().str.lower()
+    pred_df["error_type_ok"] = pred_df["error_type_ok"].str.strip().str.lower()
+    exact_match = (pred_df["predicted_error_type"] == pred_df["error_type_ok"]).mean()
+
+    print(f"Exact Match: {exact_match:.4f}")
+    with open(log_file, "a") as f:
+        f.write(f"Exact Match: {exact_match:.4f}\n")
+    # metrics = compute_metrics(pred_df)
+    # print(metrics)
+
+    pred_df.to_csv(f"./outputs/zeroshot_taxonomy_binary_evaluation/"
+                   f"binary_mini_mmlu_groundtruth_correctness_zeroshot_{args.model_type}_{args.config}.csv", index=False)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Evaluate models on Mini-MMLU dataset")
-    parser.add_argument("--model_type", type=str, required=True, choices=["gpt4", "llama", "claude"],
+    parser.add_argument("--model_type", type=str, required=True,
+                        choices=["gpt4-turbo", "llama", "claude"],
                         help="Type of model to use for prediction")
     parser.add_argument("--config", type=str, required=True,
                         help="Configuration of the mini-mmlu dataset to use")
-    parser.add_argument("--test_example_num", type=int, required=False, default=None,
-                        help="The number of examples for debugging.")
     args = parser.parse_args()
     main(args)

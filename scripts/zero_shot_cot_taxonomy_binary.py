@@ -26,11 +26,20 @@ HF_READ_TOKEN = os.getenv("HF_READ_TOKEN")
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.taxonomy.data_utils import verbaliser, extract_braced_content, normalize_error_type
-from src.taxonomy.model_utils_cot import predict_gpt4, predict_llama, predict_claude, INSTRUCTION
+from src.taxonomy.model_utils_cot_binary import predict_gpt4, predict_llama, predict_claude, INSTRUCTION
 from src.taxonomy.evaluations import compute_metrics
 
 
 def main(args):
+
+    log_file = "./outputs/zeroshot_taxonomy_cot_binary_evaluation/log_file_backup.txt"
+    
+    os.makedirs(os.path.dirname(log_file), exist_ok=True)
+    
+    with open(log_file, "a") as f:
+        f.write(f"Model Type: {args.model_type}\n")
+        f.write(f"Config: {args.config}\n")
+
     dataset = load_dataset("edinburgh-dawg/mini-mmlu", args.config, split="test", token=HF_READ_TOKEN)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -67,8 +76,8 @@ def main(args):
     pred_df = pd.DataFrame(
         columns=["question", "choices", "answer", "error_type", "model_answer", "predicted_error_type"])
 
-    if not os.path.exists("./outputs/zeroshotcot_taxonomy_evaluation/"):
-        os.makedirs("./outputs/zeroshotcot_taxonomy_evaluation/")
+    if not os.path.exists("./outputs/zeroshot_taxonomy_cot_binary_evaluation/"):
+        os.makedirs("./outputs/zeroshot_taxonomy_cot_binary_evaluation/")
 
     parse_error_n = 0
     tqdm_bar = tqdm(enumerate(dataset), total=len(dataset))
@@ -119,11 +128,19 @@ def main(args):
             normalize_error_type(predicted_error_type),
         ]
 
-    metrics = compute_metrics(pred_df)
-    print(metrics)
+    pred_df["error_type_ok"] = pred_df["error_type"].apply(lambda x: "ok" if x == "ok" else "notok")
 
-    pred_df.to_csv(f"./outputs/zeroshotcot_taxonomy_evaluation/"
-                   f"doublecheck_mini_mmlu_groundtruth_correctness_zeroshot_cot_{args.model_type}_{args.config}.csv", index=False)
+
+    pred_df["predicted_error_type"] = pred_df["predicted_error_type"].str.strip().str.lower()
+    pred_df["error_type_ok"] = pred_df["error_type_ok"].str.strip().str.lower()
+    exact_match = (pred_df["predicted_error_type"] == pred_df["error_type_ok"]).mean()
+
+    print(f"Exact Match: {exact_match:.4f}")
+    with open(log_file, "a") as f:
+        f.write(f"Exact Match: {exact_match:.4f}\n")
+
+    pred_df.to_csv(f"./outputs/zeroshot_taxonomy_cot_binary_evaluation/"
+                   f"binary_mini_mmlu_groundtruth_correctness_zeroshot_cot_{args.model_type}_{args.config}.csv", index=False)
 
 
 if __name__ == "__main__":
