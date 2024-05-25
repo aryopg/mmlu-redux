@@ -25,7 +25,7 @@ HF_READ_TOKEN = os.getenv("HF_READ_TOKEN")
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.taxonomy.data_utils import verbaliser, normalize_error_type, extract_braced_content
-from src.taxonomy.model_utils import predict_gpt4, predict_llama, predict_claude, INSTRUCTION
+from src.taxonomy.model_utils_binary import predict_gpt4, predict_llama, predict_claude, INSTRUCTION
 from src.taxonomy.evaluations import compute_metrics
 
 
@@ -68,8 +68,8 @@ def main(args):
 
     if not os.path.exists("./outputs/zeroshot_taxonomy_evaluation/"):
         os.makedirs("./outputs/zeroshot_taxonomy_evaluation/")
-
-    for i in tqdm(range(len(dataset))):
+    for i in tqdm(range(30)):
+    # for i in tqdm(range(len(dataset))):
         question = dataset[i]["question"]
         choices = dataset[i]["choices"]
         answer = dataset[i]["answer"]
@@ -111,7 +111,7 @@ def main(args):
     metrics = compute_metrics(pred_df)
     print(metrics)
 
-    pred_df.to_csv(f"./outputs/zeroshot_taxonomy_evaluation/"
+    pred_df.to_csv(f"./outputs/outputs/fewshot_taxonomy_evaluation/"
                    f"mini_mmlu_groundtruth_correctness_zeroshot_{args.model_type}_{args.config}.csv", index=False)
 
 
