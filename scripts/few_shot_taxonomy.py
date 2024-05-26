@@ -16,7 +16,7 @@ from pathlib import Path
 from transformers import LlamaForCausalLM, LlamaTokenizerFast, AutoTokenizer, AutoModelForCausalLM, pipeline
 from dotenv import load_dotenv
 
-load_dotenv(dotenv_path=".env_example")
+load_dotenv(dotenv_path=".env")
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
@@ -97,6 +97,22 @@ FEW_SHOT_EXAMPLES = [
 ]
 
 
+def create_messages(
+    system_message: str,
+    user_message: str,
+    few_shot_examples: list[dict[str, str]] = None,
+    history: list[dict[str, str]] = None,
+) -> list[dict[str, str]]:
+    messages = [{"role": "system", "content": system_message}]
+    if len(few_shot_examples) > 0:
+        for example in few_shot_examples:
+            messages.append({"role": "user", "content": example["input"]})
+            messages.append({"role": "assistant", "content": example["output"]})
+    if history and len(history) > 0:
+        messages.extend(history)
+    messages.append({"role": "user", "content": user_message})
+    return messages
+
 def main(args):
     dataset = load_dataset("edinburgh-dawg/mini-mmlu", args.config, split="test", token=HF_READ_TOKEN)
 
@@ -143,29 +159,29 @@ def main(args):
         answer = dataset[i]["answer"]
 
         if args.model_type == "gpt4":
-            verbalised_text = few_shot_prompt(
+            messages = few_shot_prompt(
                 FEW_SHOT_EXAMPLES, question, choices, answer
             )
             prediction = predict_gpt4(
-                openai_client, gpt4_model_name, verbalised_text, gpt4_generation_configs
+                openai_client, gpt4_model_name, None, gpt4_generation_configs, messages=messages
             )
         elif args.model_type == "llama":
-            verbalised_text = few_shot_prompt(
+            messages = few_shot_prompt(
                 FEW_SHOT_EXAMPLES, question, choices, answer
             )
             prediction = predict_llama(
                 llama_model,
                 llama_tokenizer,
-                verbalised_text,
+                messages,
                 llama_max_new_tokens,
                 device,
             )
             prediction = extract_braced_content(prediction)
         elif args.model_type == "claude":
-            verbalised_text = few_shot_prompt(
+            messages = few_shot_prompt(
                 FEW_SHOT_EXAMPLES, question, choices, answer
             )
-            prediction = predict_claude(claude_client, verbalised_text)
+            prediction = predict_claude(claude_client, messages)
 
         try:
             model_answer = prediction.split("Your Response: ")[-1].strip()
