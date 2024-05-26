@@ -1,0 +1,117 @@
+,Unnamed: 0,question,gemini_pro,gemini_flash,gpt40613,mixtral,palm2,palmyra,gpt4o,gpt4turbo,llama,claude,final_answer
+0,0,"The rate, r, of a zero-order chemical reaction A → B can be expressed as which of the following?",D,D,D, D,C, D,D,C, D,D,D
+1,1,Infrared (IR) spectroscopy is useful for determining certain aspects of the structure of organic molecules because,C,C,C, C,C, C,C,A, C,C,C
+2,2,What is the maximum number of phases that can be at equilibrium with each other in a three component mixture?,C,C,B, D,C, C,C,C, C,D,C
+3,3,"When the following equation is balanced, which of the following is true?
+__ MnO4− + __ I− + __ H+ <-> __ Mn2+ + __ IO3− + __ H2O",B,B,A, C,A, B,A,A, B,A,A
+4,4,The equation ΔH = ΔU + PΔV is applicable,A,B,B, B,A, B,B,B, B,B,B
+5,5,Nitronyl nitroxides are stable radicals in which the unpaired electron is coupled to two equivalent nitrogen nuclei. How many lines will appear in the EPR spectrum of a solution of a rigid nitronyl nitroxide diradical with J << a?,B,B,B, B,B, D,B,B, B,B,B
+6,6,Cobalt-60 is used in the radiation therapy of cancer and can be produced by bombardment of cobalt-59 with which of the following?,A,A,A, A,A, A,A,A, A,A,A
+7,7,Which of the following is required for both paramagnetism and ferromagnetism?,D,D,D, D,A, D,D,A, D,D,D
+8,8,"The 1H spectrum of a mixture of dimethylsulphoxide (DMSO) and acetonitrile (AN) contains lines with relative intensities α and 3α, respectively. What is the ratio of the two concentrations, [DMSO]:[AN]?",C,B,B, A,A, B,A,A, B,C,B and A
+9,9,Which of the following statements most accurately explains why the T1 of a nucleus is sometimes longer than its T2?,B,D,A, D,B, A,C,B, A,A,A
+10,10,The 1H Larmor frequency of benzene exceeds that of trifluoroacetic acid by 1.656 kHz on a 400 MHz spectrometer. The 1H chemical shift of benzene is 7.16 ppm. What is the chemical shift of trifluoroacetic acid?,C,D,B, D,A, D,A,A, B,A,A
+11,11,"Suppose that the 13C nuclei in a molecule in a 600 MHz spectrometer can be 100% polarized (p = 1). If T1 = 5.0 s, how long does it take for p to reach a value equal to twice the thermal equilibrium polarization at 298 K?",D,C,B, B,B, D,B,B, D,D,B
+12,12,Estimate the β-hyperfine value for the cyclobutyl radical (C4H7•) assuming the radical is flat and the HCH angle is 115°.,C,D,C, C,D, A,C,C, C,D,C
+13,13,What is the ratio of line intensities in the EPR spectrum of the t-Bu radical (CH3)3C•?,B,D,A, C,C, B,A,B, C,B,B
+14,14,Which one sentence explains most accurately why spin trapping is often used to detect free radical intermediates?,C,C,C, C,C, C,C,C, C,C,C
+15,15,Calculate the magnetic moment (μI) of a 13C nucleus.,D,D,D, A,B, A,A,B, A,A,A
+16,16,"The normal modes of a carbon dioxide molecule that are infrared-active include which of the following?
+I. Bending
+II. Symmetric stretching
+III. Asymmetric stretching",D,D,D, D,B, D,D,B, D,D,D
+17,17,Which of the following is a true statement about optical isomerism of complexes containing achiral ligands?,B,D,D, C,A, D,D,A, D,A,D
+18,18,Which one of the following statements is true:,D,D,D, B,A, B,D,A, A,D,D
+19,19,Calculate the Larmor frequency for a proton in a magnetic field of 1 T.,B,D,B, D,D, B,B,D, D,B,B and D
+20,20,Which of the following is an n-type semiconductor?,D,D,D, D,A, D,D,D, D,D,D
+21,21,Which of the following statements most accurately explains why the 1H spectrum of 12CHCl3 is a singlet?,D,A,A, A,D, B,D,C, D,D,D
+22,22,"At 25°C, the maximum amount of PbI2 that can be dissolved in 1.00 L of pure water is 1.0 mmol. Assuming complete dissociation, the solubility product, K_sp, for lead iodide at 25°C is",C,C,B, C,C, D,D,B, D,C,C
+23,23,The 13C spectrum of which isomer of C6H14 has lines with five distinct chemical shifts?,C,C,B, D,C, B,C,C, C,D,C
+24,24,Which of the following is the most common naturally-occurring form in which silicon is found?,D,D,D, D,A, D,D,A, D,D,D
+25,25,Which nuclide has an NMR frequency of 115.5 MHz in a 20.0 T magnetic field?,D,B,B, C,C, B,B,C, B,D,B
+26,26,"Which of the following must be true about a binary liquid mixture that obeys Raoult’s law?
+I. The partial pressure of each component at equilibrium is proportional to its mole fraction in the liquid mixture.
+II. The volume of the mixture is equal to the sum of the volumes of each component before mixing.
+III. Intermolecular interactions in the mixture are identical to intermolecular interactions in the pure components.",A,C,A, C,C, C,C,A, C,C,C
+27,27,A single line is seen in the 31P spectrum of a solution of sodium phosphate. The 31P chemical shifts of H2PO4‾ and HPO42– are 3.42 ppm and 5.82 ppm respectively. What is the chemical shift when the pH of the solution equals the pKa of H2PO4‾?,D,B,C, C,D, C,C,B, B,D,C
+28,28,"For EDTA titrations, the analyte solution and the titrant solution are both buffered at the same pH for which of the following reasons?
+I. The conditional formation constant is affected by pH.
+II. The fraction of EDTA in the fully deprotonated Y4− form varies with pH.
+III. When EDTA reacts to form a metal complex, H+ is a product in most cases.",D,B,D, D,C, D,D,C, B,D,D
+29,29,The Henry’s law constant for CO2 dissolved in water at 25°C is 30.0 atm M^−1. The concentration of dissolved CO2 in a vessel pressurized with 2.0 atm of CO2 is,C,C,D, C,A, C,B,A, B,C,C
+30,30,"A student performs five titrations and obtains a mean result of 0.110 M, with a standard deviation of 0.001 M. If the actual concentration of the titrated solution is 0.100 M, which of the following is true about the titration results?",B,B,B, B,D, B,B,D, B,B,B
+31,31,A Cu(II) metal ion (giso = 2.12) produces four lines with a separation of 500 MHz between each line. Express the hyperfine splitting in field units of mT and the hyperfine coupling in units of wavenumbers.,B,A,B, C,D, C,A,D, C,B,B and C
+32,32,"On the basis of oxidation-reduction potential, which of the following is most likely to occur?",B,B,B, B,C, B,B,C, B,B,B
+33,33,Which of the following statements is not a reason why tetramethylsilane is used as a 1H chemical shift reference.,B,D,D, B,C, D,D,C, B,B,B and D
+34,34,"The X-band (9.5 GHz) EPR spectrum of a matrix isolated Na atom reveals four hyperfine lines with resonant field positions of 3074 G, 3174 G, 3274 G and 3374 G. Calculate the g value of the atom.",A,A,A, A,D, D,A,D, A,A,A
+35,35,Calculate the spin angular momentum of 43Ca. [I = 7⁄2],D,B,B, A,C, B,B,C, B,B,B
+36,36,Calculate the magnetic field responsible for the polarization of 2.5 x 10^-6 for 13C at 298 K.,C,C,B, C,A, B,B,C, C,C,C
+37,37,"The T2 of an NMR line is 15 ms. Ignoring other sources of linebroadening, calculate its linewidth.",B,B,C, C,D, B,C,D, B,B,B
+38,38,What is the maximum value of the z-component of the spin angular momentum of 43Ca? [I = 7⁄2],C,C,C, A,A, D,C,A, C,D,C
+39,39,"Of the following compounds, which has the lowest melting point?",D,D,A, D,C, D,A,C, A,D,D
+40,40,Which of the following statements about nuclear binding energies is NOT true?,B,B,B, B,B, B,B,B, B,B,B
+41,41,Predict the hyperfine value for the EPR spectrum of fully deuteriated benzene radical anion C6D6•-.,B,B,B, A,B, A,C,B, C,B,B
+42,42,The strongest base in liquid ammonia is,B,B,B, B,B, B,B,B, B,B,B
+43,43,The equilibrium populations of the 1H energy levels of a molecule are nα = nαeq and nβ = nβeq. What are the populations after a 5.0 μs pulse when B1 = 4.697 mT?,C,C,C, A,D, A,A,D, C,A,C and A
+44,44,Calculate the Q-factor for an X-band EPR cavity with a resonator bandwidth of 1.58 MHz.,D,D,B, B,C, D,B,A, B,D,D and B
+45,45,The 13C chemical shifts of benzene and chloroform are 128.4 ppm and 77.2 ppm respectively. What is the difference in the 13C NMR frequencies of the two compounds on a 600 MHz spectrometer?,B,B,C, C,D, C,B,D, C,B,B and C
+46,46,"Of the following solutions, which will have the highest ionic strength? (Assume complete dissociation.)",A,A,A, A,B, A,A,B, A,A,A
+47,47,What is the strength (B1) of a 13C 90° pulse of duration 1 μs?,C,C,C, B,C, B,B,C, B,D,C
+48,48,Which of the following experimental observations were explained by Planck’s quantum theory?,A,A,A, A,A, A,A,A, A,A,A
+49,49,"A radioactive isotope, which is used in diagnostic imaging, has a half-life of 6.0 hours. If a quantity of this isotope has an activity of 150 mCi when it is delivered to a hospital, how much activity will remain 24 hours after delivery? (mCi = microcuries)",D,D,D, D,C, D,D,C, D,D,D
+50,50,"What is the orbital angular momentum quantum number, l, of the electron that is most easily removed when ground-state aluminum is ionized?",C,C,C, C,C, D,C,C, C,C,C
+51,51,"Considering 0.1 M aqueous solutions of each of the following, which solution has the lowest pH?",B,D,C, C,D, C,C,B, C,D,C
+52,52,"A silyl radical bearing an Si-H· fragment has a g value of 2.0033 and a pair of lines separated by 15.5 MHz. Express the splitting in units of mT, Gauss and cm-1.",D,A,A, B,A, D,A,A, A,D,A
+53,53,Elements with partially filled 4f or 5f orbitals include all of the following EXCEPT,A,A,A, A,C, A,A,C, A,A,A
+54,54,Calculate spin density on the central carbon atom of malonic acid radical (•CH(COOH)2) if the hyperfine value for the α-hydrogen atom is 21.9 G.,C,C,B, A,A, B,B,A, C,C,C
+55,55,"In fluorescence spectroscopy, the quantum yield (Φ_f) is best defined as the",C,C,C, C,C, C,C,B, C,C,C
+56,56,Which one of the following statements is true:,C,C,C, C,A, C,C,A, C,C,C
+57,57,What is the magnetic moment of 205Tl?,C,B,B, B,B, B,C,B, D,B,B
+58,58,A molecule has a rotational correlation time of 1 ns. At what magnetic field would protons in this molecule have the fastest spin-lattice relaxation? [Use eqns 5.3 and 5.4.],C,D,B, C,A, B,B,B, B,B,B
+59,59,"Of the following ionic substances, which has the greatest lattice enthalpy?",A,A,A, A,D, A,A,D, A,A,A
+60,60,Which of the following compounds has a 1H resonance approximately 1.55 kHz away from TMS on a spectrometer with a 12.0 T magnet?,C,C,B, D,A, B,A,A, D,A,A
+61,61,Calculate the equilibrium polarization of 13C nuclei in a 20.0 T magnetic field at 300 K.,C,D,B, A,A, D,C,A, B,C,C and A
+62,62,"The magnetic moment (μI) of an unknown nuclide is 2.884 x 10^-27 J T-1. Given the nuclear spin is known to be 1, identify the unknown nuclide.",A,A,B, C,C, D,B,A, A,B,A
+63,63,"Which of the following is (are) characteristic of mass spectrometry?
+I. Analyte molecules are converted to gaseous ions.
+II. The ions are separated according to their mass-to-charge ratio.
+III. In addition to compound identification, mass spectra can be utilized to determine precise isotopic masses and isotopic ratios.",D,D,D, D,D, D,D,A, D,D,D
+64,64,Which of the following types of spectroscopy is a light-scattering technique?,C,C,C, C,D, C,C,D, C,C,C
+65,65,"When the Heisenberg uncertainty principle is applied to a quantum mechanical particle in the lowest energy level of a one-dimensional box, which of the following is true?",D,D,D, D,C, B,D,D, D,D,D
+66,66,"The dissociation energy for a hydrogen-bromine bond is defined as the change in enthalpy, DH, for which of the following reactions?",D,D,D, D,B, D,D,B, D,D,D
+67,67,23Na has an NMR frequency of 198.52 MHz in a 750 MHz NMR spectrometer. What is its magnetogyric ratio?,C,C,B, C,A, B,C,A, C,B,C
+68,68,Exact solutions of the Schrödinger equation CANNOT be obtained for a,D,D,D, D,B, D,D,B, D,D,D
+69,69,What is the limiting high-temperature molar heat capacity at constant volume (C_V) of a gas-phase diatomic molecule?,D,C,D, C,B, B,D,B, C,C,C
+70,70,The +1 oxidation state is more stable than the +3 oxidation state for which group 13 element?,D,D,D, D,C, D,D,C, D,D,D
+71,71,The fact that the infrared absorption frequency of deuterium chloride (DCl) is shifted from that of hydrogen chloride (HCl) is due to the differences in their,D,D,D, D,B, D,D,B, D,D,D
+72,72,The number of allowed energy levels for the 55Mn nuclide are:,C,C,B, C,C, B,B,C, B,D,C
+73,73,A substance that is NOT generally considered to be a toxic pollutant in water is,A,A,A, A,A, A,A,A, A,A,A
+74,74,"All proteins absorb electromagnetic radiation of wavelength around 190 nm, which corresponds to a π → π* excitation in the protein molecule. In which region of the spectrum is this wavelength found?",B,B,B, B,B, B,B,B, B,B,B
+75,75,"The rotational correlation time of a spherical object of radius r immersed in a liquid with viscosity η is given by the Stokes equation: τc = 4πηr3/3kBT. A small molecule with relative molecular mass Mr = 100 in water at 298 K has τc = 50 ps. Assuming that Mr is proportional to the molecular volume, estimate τc for a small protein with Mr = 8400.",B,B,A, A,A, B,A,A, A,C,A
+76,76,Chlorofluorocarbons (CFCs) such as F3CCCl3 are implicated in the decomposition of stratospheric ozone. Which of the following methods would be best suited to measurement of trace amounts (sub-ppb) of CFCs in an air sample?,A,A,A, A,D, A,A,D, A,A,A
+77,77,The solid-state structures of the principal allotropes of elemental boron are made up of which of the following structural units?,A,A,A, A,C, A,A,C, A,A,A
+78,78,A buffer is made from equal concentrations of a weak acid and its conjugate base. Doubling the volume of the buffer solution by adding water has what effect on its pH?,A,A,A, A,D, A,A,A, A,A,A
+79,79,Which of the following is classified as a conjugate acid-base pair?,B,B,B, B,C, B,B,C, B,B,B
+80,80,Which of the following metal ions cannot be used as a paramagnetic quencher?,D,D,D, D,D, D,D,D, D,D,D
+81,81,An electron and a proton are placed in a 1.0 T magnetic field at 300 K. What is the ratio of the equilibrium polarizations: |pe / pH| ?,C,B,A, B,C, B,B,C, B,C,B
+82,82,"The amplitude of a free induction decay drops to 25% of its initial intensity after 1.0 s. Assuming exponential relaxation and Ω = 0, determine the value of T2.",C,C,C, A,A, A,A,A, C,C,C and A
+83,83,"The molecular geometry of thionyl chloride, SOCl2, is best described as",D,D,C, B,C, B,D,C, B,B,B
+84,84,"Which of the following procedures tend(s) to minimize the influence of random errors on measured results?
+I. Signal averaging
+II. Use of internal standards
+III. Averaging the results from multiple samples",D,D,D, D,C, D,D,C, D,D,D
+85,85,A PO3- radical produces a pair of lines separated by 280 MHz with giso = 2.005. Calculate the expected resonant field positions of both lines in the X-band EPR spectrum (ν = 9.5 GHz).,C,C,A, C,A, C,C,A, A,C,C
+86,86,"Calculate the relative occupancies of the α and β spin energy levels for a radical species with g = 2.05, at L- and W-band frequencies (take TS = 300 K).",B,A,B, A,C, C,A,C, C,C,C
+87,87,Which of the following is a primary standard for use in standardizing bases?,D,D,D, D,A, D,D,A, D,D,D
+88,88,Which of the following is lower for argon than for neon?,C,C,D, C,A, D,D,A, D,C,C and D
+89,89,"The 99Ru chemical shift of [Ru(H2O)6]2+ is 16,050 ppm relative to [Ru(CN)6]2- at 0 ppm. The electronic excitation energies of [Ru(H2O)6]2+, [Ru(CN)6]2- and [Ru(NH3)6]2+ are 18,900, 40,000 and 25,600 cm-1 respectively. Assuming that the chemical shift differences are dominated by paramagnetic currents, determine the chemical shift of [Ru(NH3)6]2+.",C,C,C, B,A, B,B,A, B,B,B
+90,90,"During a delay, spins with an offset frequency Ω = 250 rad s-1 precess through an angle of 60°. How long is the delay?",C,B,A, A,C, A,A,C, A,A,A
+91,91,Which of the following is always true of a spontaneous process?,D,D,D, D,B, D,D,C, D,D,D
+92,92,Nitronyl nitroxides are stable radicals in which the unpaired electron is coupled to two equivalent nitrogen nuclei. How many lines will appear in the EPR spectrum of a solution of a rigid nitronyl nitroxide diradical with J >> a?,C,C,B, B,B, B,B,B, B,C,B
+93,93,Redox enzyme catalysis involves the cyclic oxidation and reduction of metal ions that have at least two stable positive oxidation states. Which of the following groups of metals could be found at the active site of redox enzymes?,A,A,A, A,C, A,A,D, A,A,A
+94,94,"In the vibrational-rotational spectrum of a diatomic molecule, the R-branch of the spectrum is the result of which of the following transitions?",D,D,D, B,C, B,B,C, B,D,D and B
+95,95,"Of the following atoms, which has the lowest electron affinity?",D,D,D, D,B, D,D,A, D,D,D
+96,96,"Of the following ions, which has the smallest radius?",C,C,C, C,A, C,C,A, C,C,C
+97,97,What is the NMR frequency of 31P in a 20.0 T magnetic field?,C,C,D, D,C, D,B,C, A,C,C
+98,98,Predict the number of lines in the EPR spectrum of a solution of dimethylnitroxide (CH3)2NO• assuming the lines do not overlap.,B,C,C, C,C, C,C,C, C,A,C
+99,99,"Of the following compounds, which is LEAST likely to behave as a Lewis acid?",B,D,D, B,C, D,D,C, B,B,B and D
