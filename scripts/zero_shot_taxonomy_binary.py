@@ -26,11 +26,11 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.taxonomy.data_utils import verbaliser, normalize_error_type, extract_braced_content
 from src.taxonomy.model_utils_binary import predict_gpt4, predict_llama, predict_claude, INSTRUCTION
-from src.taxonomy.evaluations import compute_metrics
+from src.taxonomy.evaluations import compute_metrics, compute_metrics_binary
 
 
 def main(args):
-    log_file = "./outputs/zeroshot_taxonomy_binary_evaluation/log_file.txt"
+    log_file = "./outputs/zeroshot_taxonomy_binary_evaluation/log_file_llama.txt"
     
     os.makedirs(os.path.dirname(log_file), exist_ok=True)
     
@@ -121,11 +121,10 @@ def main(args):
     pred_df["error_type_ok"] = pred_df["error_type_ok"].str.strip().str.lower()
     exact_match = (pred_df["predicted_error_type"] == pred_df["error_type_ok"]).mean()
 
-    print(f"Exact Match: {exact_match:.4f}")
+    metrics = compute_metrics_binary(pred_df)
+    print(f"Metrics: {metrics:.4f}")
     with open(log_file, "a") as f:
-        f.write(f"Exact Match: {exact_match:.4f}\n")
-    # metrics = compute_metrics(pred_df)
-    # print(metrics)
+        f.write(f"Metrics: {metrics:.4f}\n")
 
     pred_df.to_csv(f"./outputs/zeroshot_taxonomy_binary_evaluation/"
                    f"binary_mini_mmlu_groundtruth_correctness_zeroshot_{args.model_type}_{args.config}.csv", index=False)
