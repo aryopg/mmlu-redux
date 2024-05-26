@@ -27,10 +27,10 @@ INSTRUCTION = (
     "{\"Question Presentation\": \"OK\", \"MC Options Presentation\": \"OK\", \"Answer Evaluation\": \"One\", \"Ground Truth Answer Evaluation\": \"Correct\", \"Classification\": \"OK\"}"
 )
 
-def predict_gpt4(client, model_name, prompt, generation_configs):
+def predict_gpt4(client, model_name, prompt, generation_configs, messages=None):
     response = client.chat.completions.create(
         model=model_name,
-        messages=[{"role": "system", "content": INSTRUCTION}, {"role": "user", "content": prompt}],
+        messages=[{"role": "system", "content": INSTRUCTION}, {"role": "user", "content": prompt}] if not messages else messages,
         **generation_configs
     )
     if response and response.choices:

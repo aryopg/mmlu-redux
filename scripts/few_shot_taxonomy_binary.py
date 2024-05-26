@@ -25,8 +25,8 @@ HF_READ_TOKEN = os.getenv("HF_READ_TOKEN")
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.taxonomy.data_utils import verbaliser, normalize_error_type, extract_braced_content
-from src.taxonomy.model_utils import predict_gpt4, predict_llama, predict_claude, INSTRUCTION
-from src.taxonomy.evaluations import compute_metrics, few_shot_prompt
+from src.taxonomy.model_utils_binary import predict_gpt4, predict_llama, predict_claude, INSTRUCTION
+from src.taxonomy.evaluations import few_shot_prompt, compute_metrics_binary
 
 FEW_SHOT_EXAMPLES = [
     {
@@ -34,11 +34,11 @@ FEW_SHOT_EXAMPLES = [
         "choices": ["Berlin", "Madrid", "Paris", "Rome"],
         "answer": 2,
         "response": {
-            "Question Presentation": "OK",
-            "MC Options Presentation": "OK",
+            "Question Presentation": "ok",
+            "MC Options Presentation": "ok",
             "Answer Evaluation": "One",
-            "Ground Truth Answer Evaluation": "Correct",
-            "Classification": "Correct",
+            "Ground Truth Answer Evaluation": "ok",
+            "Classification": "ok",
             "Answer": "2",
         },
     },
@@ -47,11 +47,11 @@ FEW_SHOT_EXAMPLES = [
         "choices": ["Earth", "Mars", "Jupiter", "Saturn"],
         "answer": 1,
         "response": {
-            "Question Presentation": "OK",
-            "MC Options Presentation": "OK",
+            "Question Presentation": "ok",
+            "MC Options Presentation": "ok",
             "Answer Evaluation": "One",
-            "Ground Truth Answer Evaluation": "Correct",
-            "Classification": "Correct",
+            "Ground Truth Answer Evaluation": "ok",
+            "Classification": "ok",
             "Answer": "1",
         },
     },
@@ -60,11 +60,11 @@ FEW_SHOT_EXAMPLES = [
         "choices": ["Atlantic Ocean", "Indian Ocean", "Arctic Ocean", "Pacific Ocean"],
         "answer": 1,  # Incorrect ground truth
         "response": {
-            "Question Presentation": "OK",
-            "MC Options Presentation": "OK",
+            "Question Presentation": "ok",
+            "MC Options Presentation": "ok",
             "Answer Evaluation": "One",
-            "Ground Truth Answer Evaluation": "Wrong Groundtruth",
-            "Classification": "Wrong Groundtruth",
+            "Ground Truth Answer Evaluation": "notok",
+            "Classification": "notok",
             "Answer": "D",
         },
     },
@@ -74,10 +74,10 @@ FEW_SHOT_EXAMPLES = [
         "answer": 2,
         "response": {
             "Question Presentation": "OK",
-            "MC Options Presentation": "Bad Options Clarity",
+            "MC Options Presentation": "notok",
             "Answer Evaluation": "N/A",
             "Ground Truth Answer Evaluation": "N/A",
-            "Classification": "Bad Options Clarity",
+            "Classification": "notok",
             "Answer": "",
         },
     },
@@ -86,16 +86,15 @@ FEW_SHOT_EXAMPLES = [
         "choices": ["42", "Happiness", "Success", "Love"],
         "answer": 0,
         "response": {
-            "Question Presentation": "Bad Question Clarity",
+            "Question Presentation": "notok",
             "MC Options Presentation": "N/A",
             "Answer Evaluation": "N/A",
             "Ground Truth Answer Evaluation": "N/A",
-            "Classification": "Bad Question Clarity",
+            "Classification": "notok",
             "Answer": "",
         },
     },
 ]
-
 
 def create_messages(
     system_message: str,
@@ -114,6 +113,15 @@ def create_messages(
     return messages
 
 def main(args):
+
+    log_file = "./outputs/fewshot_taxonomy_binary_evaluation/log_file.txt"
+
+    os.makedirs(os.path.dirname(log_file), exist_ok=True)
+
+    with open(log_file, "a") as f:
+        f.write(f"Model Type: {args.model_type}\n")
+        f.write(f"Config: {args.config}\n")
+
     dataset = load_dataset("edinburgh-dawg/mini-mmlu", args.config, split="test", token=HF_READ_TOKEN)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -122,7 +130,7 @@ def main(args):
         openai_client = OpenAI(
             api_key=os.getenv("OPENAI_API_KEY", OPENAI_API_KEY),
         )
-        gpt4_model_name = "gpt-4o"
+        gpt4_model_name = "gpt-4-turbo"
         gpt4_generation_configs = {
             "temperature": 0.0,
             "top_p": 1,
@@ -209,12 +217,19 @@ def main(args):
             normalize_error_type(predicted_error_type),
         ]
 
-    metrics = compute_metrics(pred_df)
-    print(f"Metrics for {args.config}:")
-    print(metrics)
+    pred_df["error_type_ok"] = pred_df["error_type"].apply(lambda x: "ok" if x == "ok" else "notok")
 
-    pred_df.to_csv(f"./outputs/fewshot_taxonomy_evaluation/"
-                   f"mini_mmlu_groundtruth_correctness_fewshot_{args.model_type}_{args.config}.csv", index=False)
+    pred_df["predicted_error_type"] = pred_df["predicted_error_type"].str.strip().str.lower()
+    pred_df["error_type_ok"] = pred_df["error_type_ok"].str.strip().str.lower()
+    exact_match = (pred_df["predicted_error_type"] == pred_df["error_type_ok"]).mean()
+
+    metrics = compute_metrics_binary(pred_df)
+    print(f"Metrics: {metrics}")
+    with open(log_file, "a") as f:
+        f.write(f"Metrics: {metrics}\n")
+
+    pred_df.to_csv(f"./outputs/fewshot_taxonomy_binary_evaluation/"
+                   f"binary_mini_mmlu_groundtruth_correctness_{args.model_type}_{args.config}.csv", index=False)
 
 
 if __name__ == "__main__":
