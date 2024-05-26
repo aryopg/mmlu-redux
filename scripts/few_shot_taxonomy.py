@@ -39,7 +39,7 @@ FEW_SHOT_EXAMPLES = [
             "Answer Evaluation": "One",
             "Ground Truth Answer Evaluation": "Correct",
             "Classification": "Correct",
-            "Answer": "",
+            "Answer": "2",
         },
     },
     {
@@ -52,7 +52,7 @@ FEW_SHOT_EXAMPLES = [
             "Answer Evaluation": "One",
             "Ground Truth Answer Evaluation": "Correct",
             "Classification": "Correct",
-            "Answer": "",
+            "Answer": "1",
         },
     },
     {
