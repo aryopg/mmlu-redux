@@ -43,8 +43,10 @@ def main():
                 #preds.append(1 if "yes" in pred_label else 0)
                 preds.append(label_to_id[pred_label])
                 trues.append(label_to_id["clean"] if true_label == "ok" else label_to_id[true_label])
-                preds_full.append(pred_label)
-                trues_full.append("clean" if true_label == "ok" else true_label)
+                #preds_full.append(pred_label)
+                preds_full.append(pred_label if pred_label == "clean" else "wrong")
+                #trues_full.append("clean" if true_label == "ok" else true_label)
+                trues_full.append("clean" if true_label == "ok" else "wrong")
                 #break
 
 
@@ -53,7 +55,9 @@ def main():
     print(accuracy_metric.compute(references=trues, predictions=preds))
     print(f1_metric.compute(references=trues, predictions=preds, average="macro"))
     print(f1_metric.compute(references=trues, predictions=preds, average="micro"))
-    print(confusion_matrix(trues_full, preds_full, labels=[label.replace("_", " ") for label in subset_lst]))
+    #print(confusion_matrix(trues_full, preds_full, labels=[label.replace("_", " ") for label in subset_lst]))
+    print(confusion_matrix(trues_full, preds_full, labels=["clean", "wrong"]).ravel())
+    #tn, fp, fn, tp = confusion_matrix([0, 1, 0, 1], [1, 1, 1, 0]).ravel()
     #print(set(preds))
     #print(set(trues))
 

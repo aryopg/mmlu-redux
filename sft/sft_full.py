@@ -149,6 +149,8 @@ def main(argv):
     subset_lst = ['bad_options_clarity', 'bad_questions_clarity', 'clean', 'multiple_correct_answers', 'no_correct_answer', 'wrong_groundtruth']
     subset_id_to_ds = {k: load_dataset(ds_id, k) for k in subset_lst}
 
+    probs = [0.1, 0.1, 0.5, 0.1, 0.1, 0.1] 
+
     for subset_id, ds in subset_id_to_ds.items():
         for split_name in ['train', 'validation', 'test']:
             input_lst, output_lst = [], []
@@ -161,39 +163,48 @@ def main(argv):
             ds[split_name] = ds[split_name].add_column("input", input_lst)
             ds[split_name] = ds[split_name].add_column("output", output_lst)
 
-    ok_train_ds = subset_id_to_ds['clean']['train']
+    #ok_train_ds = subset_id_to_ds['clean']['train']
 
-    not_ok_lst = [entry for entry in subset_lst if 'clean' not in entry]
-    not_ok_train_ds = concatenate_datasets([subset_id_to_ds[name]['train'] for name in not_ok_lst])
+    #not_ok_lst = [entry for entry in subset_lst if 'clean' not in entry]
+    #not_ok_train_ds = concatenate_datasets([subset_id_to_ds[name]['train'] for name in not_ok_lst])
 
-    ok_train_ds = ok_train_ds.map(create_conversation,
-                                  remove_columns=ok_train_ds.features,
-                                  batched=False,
-                                  desc="Generating Yes conversations")
+
+    train_ds = interleave_datasets([subset_id_to_ds[name]['train'] for name in subset_lst], probabilities=probs, seed=42)
+
+    train_ds = train_ds.map(create_conversation,
+                            remove_columns=train_ds.features,
+                            batched=False,
+                            desc="Generating Yes conversations")
     
-    not_ok_train_ds = not_ok_train_ds.map(create_conversation,
-                                          remove_columns=not_ok_train_ds.features,
-                                          batched=False,
-                                          desc="Generating No conversations")
+    #not_ok_train_ds = not_ok_train_ds.map(create_conversation,
+    #                                      remove_columns=not_ok_train_ds.features,
+    #                                      batched=False,
+    #                                      desc="Generating No conversations")
 
-    #train_ds = interleave_datasets([ok_train_ds, not_ok_train_ds], probabilities=[0.5, 0.5], seed=42)
-    train_ds = concatenate_datasets([ok_train_ds, not_ok_train_ds])
+    #train_ds = concatenate_datasets([ok_train_ds, not_ok_train_ds])
 
-    ok_dev_ds = subset_id_to_ds['clean']['validation']
-    not_ok_dev_ds = concatenate_datasets([subset_id_to_ds[name]['validation'] for name in not_ok_lst])
+    #ok_dev_ds = subset_id_to_ds['clean']['validation']
+    #not_ok_dev_ds = concatenate_datasets([subset_id_to_ds[name]['validation'] for name in not_ok_lst])
 
-    ok_dev_ds = ok_dev_ds.map(create_conversation,
-                              remove_columns=ok_dev_ds.features,
-                              batched=False,
-                              desc="Generating Yes conversations")
-    
-    not_ok_dev_ds = not_ok_dev_ds.map(create_conversation,
-                                      remove_columns=not_ok_dev_ds.features,
-                                      batched=False,
-                                      desc="Generating No conversations")
+    #ok_dev_ds = ok_dev_ds.map(create_conversation,
+    #                          remove_columns=ok_dev_ds.features,
+    #                          batched=False,
+    #                          desc="Generating Yes conversations")
+    #
+    #not_ok_dev_ds = not_ok_dev_ds.map(create_conversation,
+    #                                  remove_columns=not_ok_dev_ds.features,
+    #                                  batched=False,
+    #                                  desc="Generating No conversations")
 
-    dev_ds = interleave_datasets([ok_dev_ds, not_ok_dev_ds], probabilities=[0.5, 0.5], seed=42)
-    #dev_ds = concatenate_datasets([ok_dev_ds, not_ok_dev_ds])
+    #dev_ds = interleave_datasets([ok_dev_ds, not_ok_dev_ds], probabilities=[0.5, 0.5], seed=42)
+    ##dev_ds = concatenate_datasets([ok_dev_ds, not_ok_dev_ds])
+
+    dev_ds = interleave_datasets([subset_id_to_ds[name]['validation'] for name in subset_lst], probabilities=probs, seed=42)
+
+    dev_ds = dev_ds.map(create_conversation,
+                        remove_columns=dev_ds.features,
+                        batched=False,
+                        desc="Generating Yes conversations")
 
 
     def create_conversation_toxic(example):
