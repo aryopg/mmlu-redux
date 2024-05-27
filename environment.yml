@@ -30,3 +30,6 @@ dependencies:
   - transformers == 4.40.1 # rob_m: required for llama 3 support
   - tokenizers
   - openai
+  - pyserini
+  - faiss-cpu
+
