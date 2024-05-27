@@ -61,10 +61,36 @@ FEW_SHOT_EXAMPLES = [
     },
     {
         "question": "What is the largest ocean on Earth?",
+        "choices": ["Atlantic Ocean", "Indian Ocean", "Arctic Ocean", "Pacific Ocean"],
+        "answer": 3,
+        "response": {
+            "Question Presentation": "ok",
+            "MC Options Presentation": "ok",
+            "Answer Evaluation": "ok",
+            "Ground Truth Answer Evaluation": "ok",
+            "Classification": "not ok",
+            "Answer": "",
+        },
+    },
+    {
+        "question": "What is the largest ocean on Earth?",
         "choices": ["Atlantic", "Ocean", "Arctic Ocean", "Pacific Ocean"],
         "answer": 3,
         "response": {
-            "Question Presentation": "OK",
+            "Question Presentation": "ok",
+            "MC Options Presentation": "not ok",
+            "Answer Evaluation": "N/A",
+            "Ground Truth Answer Evaluation": "N/A",
+            "Classification": "not ok",
+            "Answer": "",
+        },
+    },
+    {
+        "question": "How long does human pregnancy last?",
+        "choices": ["9", "months", "8 months", "10 months"],
+        "answer": 0,
+        "response": {
+            "Question Presentation": "ok",
             "MC Options Presentation": "not ok",
             "Answer Evaluation": "N/A",
             "Ground Truth Answer Evaluation": "N/A",
@@ -75,6 +101,19 @@ FEW_SHOT_EXAMPLES = [
     {
         "question": "What is the meaning of life?",
         "choices": ["42", "Happiness", "Success", "Love"],
+        "answer": 0,
+        "response": {
+            "Question Presentation": "not ok",
+            "MC Options Presentation": "N/A",
+            "Answer Evaluation": "N/A",
+            "Ground Truth Answer Evaluation": "N/A",
+            "Classification": "not ok",
+            "Answer": "",
+        },
+    },
+    {
+        "question": "Where is the headquarter of the company mentioned in question 21?",
+        "choices": ["London", "Paris", "Berlin", "Madrid"],
         "answer": 0,
         "response": {
             "Question Presentation": "not ok",
@@ -99,6 +138,19 @@ FEW_SHOT_EXAMPLES = [
         },
     },
     {
+        "question": "What is the capital of Indonesia?",
+        "choices": ["Tokyo", "Beijing", "Bangkok", "Jakarta"],
+        "answer": 2,
+        "response": {
+            "Question Presentation": "ok",
+            "MC Options Presentation": "ok",
+            "Answer Evaluation": "not ok",
+            "Ground Truth Answer Evaluation": "not ok",
+            "Classification": "not ok",
+            "Answer": "D. Jakarta",
+        },
+    },
+    {
         "question": "Which of the following countries are located in both Europe and Asia?",
         "choices": ["Russia", "Turkey", "Kazakhstan", "Georgia"],
         "answer": 1,
@@ -112,6 +164,19 @@ FEW_SHOT_EXAMPLES = [
         },
     },
     {
+        "question": "Which of the following is a state in the USA?",
+        "choices": ["California", "Texas", "Mexico", "Florida"],
+        "answer": 0,
+        "response": {
+            "Question Presentation": "ok",
+            "MC Options Presentation": "ok",
+            "Answer Evaluation": "not ok",
+            "Ground Truth Answer Evaluation": "N/A",
+            "Classification": "not ok",
+            "Answer": "A. California, B. Texas, D. Florida",
+        },
+    },
+    {
         "question": "What is the capital of France?",
         "choices": ["Berlin", "Madrid", "Jakarta", "Rome"],
         "answer": 3,  # No correct answer
@@ -122,6 +187,19 @@ FEW_SHOT_EXAMPLES = [
             "Ground Truth Answer Evaluation": "N/A",
             "Classification": "not ok",
             "Answer": "Paris",
+        },
+    },
+    {
+        "question": "Which of the following is a mammal?",
+        "choices": ["Lizard", "Snake", "Jellyfish", "Parrot"],
+        "answer": 3,  # No correct answer
+        "response": {
+            "Question Presentation": "ok",
+            "MC Options Presentation": "ok",
+            "Answer Evaluation": "not ok",
+            "Ground Truth Answer Evaluation": "N/A",
+            "Classification": "not ok",
+            "Answer": "",
         },
     },
 ]
