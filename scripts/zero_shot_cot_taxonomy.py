@@ -25,7 +25,7 @@ from transformers import (
     pipeline,
 )
 
-load_dotenv(dotenv_path=".env_example")
+load_dotenv(dotenv_path=".env")
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")

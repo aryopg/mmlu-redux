@@ -1,22 +1,30 @@
 import argparse
-import sys
-import os
 import json
+import os
+import sys
+
 from tqdm import tqdm
 
 sys.path.append(os.path.join(os.getcwd(), "src"))
 
-import pandas as pd
-from datasets import load_dataset
-from openai import OpenAI
-import anthropic
-from huggingface_hub import login
-import torch
 from pathlib import Path
-from transformers import LlamaForCausalLM, LlamaTokenizerFast, AutoTokenizer, AutoModelForCausalLM, pipeline
-from dotenv import load_dotenv
 
-load_dotenv(dotenv_path=".env_example")
+import anthropic
+import pandas as pd
+import torch
+from datasets import load_dataset
+from dotenv import load_dotenv
+from huggingface_hub import login
+from openai import OpenAI
+from transformers import (
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    LlamaForCausalLM,
+    LlamaTokenizerFast,
+    pipeline,
+)
+
+load_dotenv(dotenv_path=".env")
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
@@ -24,9 +32,18 @@ HF_READ_TOKEN = os.getenv("HF_READ_TOKEN")
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.taxonomy.data_utils import verbaliser, normalize_error_type, extract_braced_content
-from src.taxonomy.model_utils import predict_gpt4, predict_llama, predict_claude, INSTRUCTION
+from src.taxonomy.data_utils import (
+    extract_braced_content,
+    normalize_error_type,
+    verbaliser,
+)
 from src.taxonomy.evaluations import compute_metrics, few_shot_prompt
+from src.taxonomy.model_utils import (
+    INSTRUCTION,
+    predict_claude,
+    predict_gpt4,
+    predict_llama,
+)
 
 FEW_SHOT_EXAMPLES = [
     {
@@ -113,8 +130,11 @@ def create_messages(
     messages.append({"role": "user", "content": user_message})
     return messages
 
+
 def main(args):
-    dataset = load_dataset("edinburgh-dawg/mini-mmlu", args.config, split="test", token=HF_READ_TOKEN)
+    dataset = load_dataset(
+        "edinburgh-dawg/mini-mmlu", args.config, split="test", token=HF_READ_TOKEN
+    )
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -134,10 +154,12 @@ def main(args):
         login(HF_READ_TOKEN)
         llm_path = "meta-llama/Meta-Llama-3-70B-Instruct"
         llama_tokenizer = AutoTokenizer.from_pretrained(llm_path)
-        llama_model = AutoModelForCausalLM.from_pretrained(llm_path,
-                                                           device_map="auto",
-                                                           torch_dtype=torch.bfloat16,
-                                                           cache_dir="/mnt/ssd/llms").to(device)
+        llama_model = AutoModelForCausalLM.from_pretrained(
+            llm_path,
+            device_map="auto",
+            torch_dtype=torch.bfloat16,
+            cache_dir="/mnt/ssd/llms",
+        ).to(device)
         llama_model.eval()
         llama_max_new_tokens = 200
     elif args.model_type == "claude":
@@ -145,10 +167,20 @@ def main(args):
             api_key=os.getenv("ANTHROPIC_API_KEY", ANTHROPIC_API_KEY),
         )
     else:
-        raise ValueError("Invalid model type. Choose from 'gpt4', 'llama', or 'claude'.")
+        raise ValueError(
+            "Invalid model type. Choose from 'gpt4', 'llama', or 'claude'."
+        )
 
     pred_df = pd.DataFrame(
-        columns=["question", "choices", "answer", "error_type", "model_answer", "predicted_error_type"])
+        columns=[
+            "question",
+            "choices",
+            "answer",
+            "error_type",
+            "model_answer",
+            "predicted_error_type",
+        ]
+    )
 
     if not os.path.exists("./outputs/fewshot_taxonomy_evaluation/"):
         os.makedirs("./outputs/fewshot_taxonomy_evaluation/")
@@ -159,16 +191,16 @@ def main(args):
         answer = dataset[i]["answer"]
 
         if args.model_type == "gpt4":
-            messages = few_shot_prompt(
-                FEW_SHOT_EXAMPLES, question, choices, answer
-            )
+            messages = few_shot_prompt(FEW_SHOT_EXAMPLES, question, choices, answer)
             prediction = predict_gpt4(
-                openai_client, gpt4_model_name, None, gpt4_generation_configs, messages=messages
+                openai_client,
+                gpt4_model_name,
+                None,
+                gpt4_generation_configs,
+                messages=messages,
             )
         elif args.model_type == "llama":
-            messages = few_shot_prompt(
-                FEW_SHOT_EXAMPLES, question, choices, answer
-            )
+            messages = few_shot_prompt(FEW_SHOT_EXAMPLES, question, choices, answer)
             prediction = predict_llama(
                 llama_model,
                 llama_tokenizer,
@@ -178,9 +210,7 @@ def main(args):
             )
             prediction = extract_braced_content(prediction)
         elif args.model_type == "claude":
-            messages = few_shot_prompt(
-                FEW_SHOT_EXAMPLES, question, choices, answer
-            )
+            messages = few_shot_prompt(FEW_SHOT_EXAMPLES, question, choices, answer)
             prediction = predict_claude(claude_client, messages)
 
         try:
@@ -213,15 +243,27 @@ def main(args):
     print(f"Metrics for {args.config}:")
     print(metrics)
 
-    pred_df.to_csv(f"./outputs/fewshot_taxonomy_evaluation/"
-                   f"mini_mmlu_groundtruth_correctness_fewshot_{args.model_type}_{args.config}.csv", index=False)
+    pred_df.to_csv(
+        f"./outputs/fewshot_taxonomy_evaluation/"
+        f"mini_mmlu_groundtruth_correctness_fewshot_{args.model_type}_{args.config}.csv",
+        index=False,
+    )
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Evaluate models on Mini-MMLU dataset")
-    parser.add_argument("--model_type", type=str, required=True, choices=["gpt4", "llama", "claude"],
-                        help="Type of model to use for prediction")
-    parser.add_argument("--config", type=str, required=True,
-                        help="Configuration of the mini-mmlu dataset to use")
+    parser.add_argument(
+        "--model_type",
+        type=str,
+        required=True,
+        choices=["gpt4", "llama", "claude"],
+        help="Type of model to use for prediction",
+    )
+    parser.add_argument(
+        "--config",
+        type=str,
+        required=True,
+        help="Configuration of the mini-mmlu dataset to use",
+    )
     args = parser.parse_args()
     main(args)
