@@ -7,11 +7,12 @@ def main():
     subset_id_to_ds = {k: load_dataset(ds_id, k) for k in subset_lst}
 
     DEFAULT_INSTRUCTION = "Analyze the following multiple-choice question and the corresponding answer carefully, and tell me which category it falls in:\n\n1. bad options clarity\n2. bad questions clarity\n3. clean\n4. multiple correct answers\n5. no correct answer\n6. wrong groundtruth"
+    DEFAULT_INSTRUCTION = "Analyze the following multiple-choice question and the corresponding answer carefully, and tell me which category it falls in:\n\n1. bad presentation\n2. clean\n3. wrong groundtruth"
 
     def create_conversation(example):
         messages = [
             {"role": "system", "content": DEFAULT_INSTRUCTION},
-            {"role": "user", "content": example["input"] + "\\nYour response:"},
+            {"role": "user", "content": example["input"] + "\nYour response:"},
             {"role": "assistant", "content": example["output"]}
         ]
         return {"messages": messages}
@@ -26,6 +27,15 @@ def main():
     subset_lst = ['bad_options_clarity', 'bad_questions_clarity', 'clean', 'multiple_correct_answers', 'no_correct_answer', 'wrong_groundtruth']
     subset_id_to_ds = {k: load_dataset(ds_id, k) for k in subset_lst}
 
+    remapping = {
+        "clean": "clean",
+        "bad_questions_clarity": "bad presentation",
+        "bad_options_clarity": "bad presentation",
+        "no_correct_answer": "wrong groundtruth",
+        "multiple_correct_answers": "wrong groundtruth",
+        "wrong_groundtruth": "wrong groundtruth",
+    }
+
     for subset_id, ds in subset_id_to_ds.items():
         for split_name in ['train', 'validation', 'test']:
             input_lst, output_lst = [], []
@@ -33,7 +43,8 @@ def main():
             for entry in ds[split_name]:
                 input_str = verbaliser(entry['question'], entry['choices'],  entry['answer'])
                 input_lst += [input_str]
-                output_lst += [(subset_id.replace("_", " "))]
+                #output_lst += [(subset_id.replace("_", " "))]
+                output_lst += [remapping[subset_id]]
 
             ds[split_name] = ds[split_name].add_column("input", input_lst)
             ds[split_name] = ds[split_name].add_column("output", output_lst)
@@ -77,7 +88,8 @@ def main():
         print("="*10)
         #print(dev_ds[i])
         #print("="*10)
-        break
+        if i > 20:
+            break
 
 if __name__ == '__main__':
     main()
