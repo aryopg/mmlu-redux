@@ -1,22 +1,30 @@
 import argparse
-import sys
-import os
 import json
+import os
+import sys
+
 from tqdm import tqdm
 
 sys.path.append(os.path.join(os.getcwd(), "src"))
 
-import pandas as pd
-from datasets import load_dataset
-from openai import OpenAI
-import anthropic
-from huggingface_hub import login
-import torch
 from pathlib import Path
-from transformers import LlamaForCausalLM, LlamaTokenizerFast, AutoTokenizer, AutoModelForCausalLM, pipeline
-from dotenv import load_dotenv
 
-load_dotenv(dotenv_path=".env_example")
+import anthropic
+import pandas as pd
+import torch
+from datasets import load_dataset
+from dotenv import load_dotenv
+from huggingface_hub import login
+from openai import OpenAI
+from transformers import (
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    LlamaForCausalLM,
+    LlamaTokenizerFast,
+    pipeline,
+)
+
+load_dotenv(dotenv_path=".env")
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
@@ -24,24 +32,20 @@ HF_READ_TOKEN = os.getenv("HF_READ_TOKEN")
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.taxonomy.data_utils import verbaliser, normalize_error_type, extract_braced_content
-from src.taxonomy.model_utils_binary import predict_gpt4, predict_llama, predict_claude, INSTRUCTION
-from src.taxonomy.evaluations import few_shot_prompt, compute_metrics_binary
+from src.taxonomy.data_utils import (
+    extract_braced_content,
+    normalize_error_type,
+    verbaliser,
+)
+from src.taxonomy.evaluations import compute_metrics_binary, few_shot_prompt
+from src.taxonomy.model_utils_binary import (
+    INSTRUCTION,
+    predict_claude,
+    predict_gpt4,
+    predict_llama,
+)
 
 FEW_SHOT_EXAMPLES = [
-    {
-        "question": "What is the capital of France?",
-        "choices": ["Berlin", "Madrid", "Paris", "Rome"],
-        "answer": 2,
-        "response": {
-            "Question Presentation": "ok",
-            "MC Options Presentation": "ok",
-            "Answer Evaluation": "One",
-            "Ground Truth Answer Evaluation": "ok",
-            "Classification": "ok",
-            "Answer": "2",
-        },
-    },
     {
         "question": "Which planet is known as the Red Planet?",
         "choices": ["Earth", "Mars", "Jupiter", "Saturn"],
@@ -49,35 +53,22 @@ FEW_SHOT_EXAMPLES = [
         "response": {
             "Question Presentation": "ok",
             "MC Options Presentation": "ok",
-            "Answer Evaluation": "One",
+            "Answer Evaluation": "ok",
             "Ground Truth Answer Evaluation": "ok",
             "Classification": "ok",
-            "Answer": "1",
+            "Answer": "B. Mars",
         },
     },
     {
         "question": "What is the largest ocean on Earth?",
-        "choices": ["Atlantic Ocean", "Indian Ocean", "Arctic Ocean", "Pacific Ocean"],
-        "answer": 1,  # Incorrect ground truth
-        "response": {
-            "Question Presentation": "ok",
-            "MC Options Presentation": "ok",
-            "Answer Evaluation": "One",
-            "Ground Truth Answer Evaluation": "notok",
-            "Classification": "notok",
-            "Answer": "D",
-        },
-    },
-    {
-        "question": "Which of the following is a fruit?",
-        "choices": ["Carrot", "Potato", "Tomato", "Cucumber"],
-        "answer": 2,
+        "choices": ["Atlantic", "Ocean", "Arctic Ocean", "Pacific Ocean"],
+        "answer": 3,
         "response": {
             "Question Presentation": "OK",
-            "MC Options Presentation": "notok",
+            "MC Options Presentation": "not ok",
             "Answer Evaluation": "N/A",
             "Ground Truth Answer Evaluation": "N/A",
-            "Classification": "notok",
+            "Classification": "not ok",
             "Answer": "",
         },
     },
@@ -86,15 +77,55 @@ FEW_SHOT_EXAMPLES = [
         "choices": ["42", "Happiness", "Success", "Love"],
         "answer": 0,
         "response": {
-            "Question Presentation": "notok",
+            "Question Presentation": "not ok",
             "MC Options Presentation": "N/A",
             "Answer Evaluation": "N/A",
             "Ground Truth Answer Evaluation": "N/A",
-            "Classification": "notok",
+            "Classification": "not ok",
             "Answer": "",
         },
     },
+    {
+        "question": "Which of the following is a fruit?",
+        "choices": ["Carrot", "Peanut", "Potato", "Apple"],
+        "answer": 2,
+        "response": {
+            "Question Presentation": "ok",
+            "MC Options Presentation": "ok",
+            "Answer Evaluation": "not ok",
+            "Ground Truth Answer Evaluation": "not ok",
+            "Classification": "not ok",
+            "Answer": "D. Apple",
+        },
+    },
+    {
+        "question": "Which of the following countries are located in both Europe and Asia?",
+        "choices": ["Russia", "Turkey", "Kazakhstan", "Georgia"],
+        "answer": 1,
+        "response": {
+            "Question Presentation": "ok",
+            "MC Options Presentation": "ok",
+            "Answer Evaluation": "not ok",
+            "Ground Truth Answer Evaluation": "N/A",
+            "Classification": "not ok",
+            "Answer": "A. Russia,B. Turkey",
+        },
+    },
+    {
+        "question": "What is the capital of France?",
+        "choices": ["Berlin", "Madrid", "Jakarta", "Rome"],
+        "answer": 3,  # No correct answer
+        "response": {
+            "Question Presentation": "ok",
+            "MC Options Presentation": "ok",
+            "Answer Evaluation": "not ok",
+            "Ground Truth Answer Evaluation": "N/A",
+            "Classification": "not ok",
+            "Answer": "Paris",
+        },
+    },
 ]
+
 
 def create_messages(
     system_message: str,
@@ -112,8 +143,8 @@ def create_messages(
     messages.append({"role": "user", "content": user_message})
     return messages
 
-def main(args):
 
+def main(args):
     log_file = "./outputs/fewshot_taxonomy_binary_evaluation/log_file.txt"
 
     os.makedirs(os.path.dirname(log_file), exist_ok=True)
@@ -122,7 +153,9 @@ def main(args):
         f.write(f"Model Type: {args.model_type}\n")
         f.write(f"Config: {args.config}\n")
 
-    dataset = load_dataset("edinburgh-dawg/mini-mmlu", args.config, split="test", token=HF_READ_TOKEN)
+    dataset = load_dataset(
+        "edinburgh-dawg/mini-mmlu", args.config, split="test", token=HF_READ_TOKEN
+    )
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -130,7 +163,7 @@ def main(args):
         openai_client = OpenAI(
             api_key=os.getenv("OPENAI_API_KEY", OPENAI_API_KEY),
         )
-        gpt4_model_name = "gpt-4-turbo"
+        gpt4_model_name = "gpt-4o"
         gpt4_generation_configs = {
             "temperature": 0.0,
             "top_p": 1,
@@ -142,10 +175,12 @@ def main(args):
         login(HF_READ_TOKEN)
         llm_path = "meta-llama/Meta-Llama-3-70B-Instruct"
         llama_tokenizer = AutoTokenizer.from_pretrained(llm_path)
-        llama_model = AutoModelForCausalLM.from_pretrained(llm_path,
-                                                           device_map="auto",
-                                                           torch_dtype=torch.bfloat16,
-                                                           cache_dir="/mnt/ssd/llms").to(device)
+        llama_model = AutoModelForCausalLM.from_pretrained(
+            llm_path,
+            device_map="auto",
+            torch_dtype=torch.bfloat16,
+            cache_dir="/mnt/ssd/llms",
+        ).to(device)
         llama_model.eval()
         llama_max_new_tokens = 200
     elif args.model_type == "claude":
@@ -153,10 +188,20 @@ def main(args):
             api_key=os.getenv("ANTHROPIC_API_KEY", ANTHROPIC_API_KEY),
         )
     else:
-        raise ValueError("Invalid model type. Choose from 'gpt4', 'llama', or 'claude'.")
+        raise ValueError(
+            "Invalid model type. Choose from 'gpt4', 'llama', or 'claude'."
+        )
 
     pred_df = pd.DataFrame(
-        columns=["question", "choices", "answer", "error_type", "model_answer", "predicted_error_type"])
+        columns=[
+            "question",
+            "choices",
+            "answer",
+            "error_type",
+            "model_answer",
+            "predicted_error_type",
+        ]
+    )
 
     if not os.path.exists("./outputs/fewshot_taxonomy_evaluation/"):
         os.makedirs("./outputs/fewshot_taxonomy_evaluation/")
@@ -168,14 +213,18 @@ def main(args):
 
         if args.model_type == "gpt4":
             messages = few_shot_prompt(
-                FEW_SHOT_EXAMPLES, question, choices, answer
+                FEW_SHOT_EXAMPLES, INSTRUCTION, question, choices, answer
             )
             prediction = predict_gpt4(
-                openai_client, gpt4_model_name, None, gpt4_generation_configs, messages=messages
+                openai_client,
+                gpt4_model_name,
+                None,
+                gpt4_generation_configs,
+                messages=messages,
             )
         elif args.model_type == "llama":
             messages = few_shot_prompt(
-                FEW_SHOT_EXAMPLES, question, choices, answer
+                FEW_SHOT_EXAMPLES, INSTRUCTION, question, choices, answer
             )
             prediction = predict_llama(
                 llama_model,
@@ -187,7 +236,7 @@ def main(args):
             prediction = extract_braced_content(prediction)
         elif args.model_type == "claude":
             messages = few_shot_prompt(
-                FEW_SHOT_EXAMPLES, question, choices, answer
+                FEW_SHOT_EXAMPLES, INSTRUCTION, question, choices, answer
             )
             prediction = predict_claude(claude_client, messages)
 
@@ -217,9 +266,13 @@ def main(args):
             normalize_error_type(predicted_error_type),
         ]
 
-    pred_df["error_type_ok"] = pred_df["error_type"].apply(lambda x: "ok" if x == "ok" else "notok")
+    pred_df["error_type_ok"] = pred_df["error_type"].apply(
+        lambda x: "ok" if x == "ok" else "notok"
+    )
 
-    pred_df["predicted_error_type"] = pred_df["predicted_error_type"].str.strip().str.lower()
+    pred_df["predicted_error_type"] = (
+        pred_df["predicted_error_type"].str.strip().str.lower()
+    )
     pred_df["error_type_ok"] = pred_df["error_type_ok"].str.strip().str.lower()
     exact_match = (pred_df["predicted_error_type"] == pred_df["error_type_ok"]).mean()
 
@@ -228,15 +281,27 @@ def main(args):
     with open(log_file, "a") as f:
         f.write(f"Metrics: {metrics}\n")
 
-    pred_df.to_csv(f"./outputs/fewshot_taxonomy_binary_evaluation/"
-                   f"binary_mini_mmlu_groundtruth_correctness_{args.model_type}_{args.config}.csv", index=False)
+    pred_df.to_csv(
+        f"./outputs/fewshot_taxonomy_binary_evaluation/"
+        f"binary_mini_mmlu_groundtruth_correctness_{args.model_type}_{args.config}.csv",
+        index=False,
+    )
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Evaluate models on Mini-MMLU dataset")
-    parser.add_argument("--model_type", type=str, required=True, choices=["gpt4", "llama", "claude"],
-                        help="Type of model to use for prediction")
-    parser.add_argument("--config", type=str, required=True,
-                        help="Configuration of the mini-mmlu dataset to use")
+    parser.add_argument(
+        "--model_type",
+        type=str,
+        required=True,
+        choices=["gpt4", "llama", "claude"],
+        help="Type of model to use for prediction",
+    )
+    parser.add_argument(
+        "--config",
+        type=str,
+        required=True,
+        help="Configuration of the mini-mmlu dataset to use",
+    )
     args = parser.parse_args()
     main(args)
