@@ -1,7 +1,8 @@
 import os
+
+import anthropic
 import torch
 from openai import OpenAI
-import anthropic
 
 INSTRUCTION = (
     "# Task:\n"
@@ -24,13 +25,21 @@ INSTRUCTION = (
     "The 'classification' is either ok, or not ok. \n\n"
     "FOLLOW THE EXACT EXAMPLE ANSWER FORMAT WITHOUT PROVIDING EXPLANATION"
     "# Example Answer:\n"
-    "{\"Question Presentation\": \"OK\", \"MC Options Presentation\": \"OK\", \"Answer Evaluation\": \"One\", \"Ground Truth Answer Evaluation\": \"Correct\", \"Classification\": \"OK\"}"
+    '{"Question Presentation": "ok", "MC Options Presentation": "ok", "Answer Evaluation": "ok", "Ground Truth Answer Evaluation": "ok", "Classification": "ok"}'
 )
+
 
 def predict_gpt4(client, model_name, prompt, generation_configs, messages=None):
     response = client.chat.completions.create(
         model=model_name,
-        messages=[{"role": "system", "content": INSTRUCTION}, {"role": "user", "content": prompt}] if not messages else messages,
+        messages=(
+            [
+                {"role": "system", "content": INSTRUCTION},
+                {"role": "user", "content": prompt},
+            ]
+            if not messages
+            else messages
+        ),
         **generation_configs
     )
     if response and response.choices:
@@ -40,32 +49,34 @@ def predict_gpt4(client, model_name, prompt, generation_configs, messages=None):
 
     return prediction
 
+
 def predict_llama(model, tokenizer, prompt, max_new_tokens, device):
     input_ids = tokenizer(prompt, return_tensors="pt").input_ids.to(device)
     attention_mask = torch.ones_like(input_ids).to(device)
     pad_token_id = tokenizer.pad_token_id
 
     output = model.generate(
-        input_ids, 
-        attention_mask=attention_mask, 
+        input_ids,
+        attention_mask=attention_mask,
         pad_token_id=pad_token_id,
-        max_new_tokens=max_new_tokens, 
+        max_new_tokens=max_new_tokens,
         num_return_sequences=1,
-        do_sample = False,
-        temperature = 0.0
+        do_sample=False,
+        temperature=0.0,
     )
-    prediction = tokenizer.decode(output[0, input_ids.shape[1]:], skip_special_tokens=True)
+    prediction = tokenizer.decode(
+        output[0, input_ids.shape[1] :], skip_special_tokens=True
+    )
     return prediction
+
 
 def predict_claude(client, prompt):
     response = client.messages.create(
         model="claude-3-opus-20240229",
         max_tokens=200,
         temperature=0.0,
-        system= INSTRUCTION,
-        messages=[
-            {"role": "user", "content": prompt}
-        ]
+        system=INSTRUCTION,
+        messages=[{"role": "user", "content": prompt}],
     )
     prediction = response.content[0].text
     return prediction
@@ -73,9 +84,7 @@ def predict_claude(client, prompt):
 
 def fewshot_predict_gpt4(client, model_name, messages, generation_configs):
     response = client.chat.completions.create(
-        model=model_name,
-        messages=messages,
-        **generation_configs
+        model=model_name, messages=messages, **generation_configs
     )
     if response and response.choices:
         prediction = response.choices[0].message.content
