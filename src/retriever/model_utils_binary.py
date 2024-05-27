@@ -1,12 +1,11 @@
 import os
-
-import anthropic
 import torch
 from openai import OpenAI
+import anthropic
 
 INSTRUCTION = (
     "# Task:\n"
-    "Given a triple consisting of a multiple choice question, its choices, and the corresponding ground truth answer, your task is to classify the triple into 'ok' or 'not ok'.\n\n"
+    "Given the context (some of which might be irrelevant) and a triple consisting of a multiple choice question, its choices, and the corresponding ground truth answer, your task is to classify the triple into 'ok' or 'not ok'.\n\n"
     "# Instructions:\n"
     "1. Question Presentation: Is the question well-presented? Assess clarity, grammar, and sufficiency of information.\n"
     "1.1 If Yes, assess the presentation of the MC options.\n"
@@ -25,21 +24,13 @@ INSTRUCTION = (
     "The 'classification' is either ok, or not ok. \n\n"
     "FOLLOW THE EXACT EXAMPLE ANSWER FORMAT WITHOUT PROVIDING EXPLANATION"
     "# Example Answer:\n"
-    '{"Question Presentation": "ok", "MC Options Presentation": "ok", "Answer Evaluation": "ok", "Ground Truth Answer Evaluation": "ok", "Classification": "ok"}'
+    "{\"Question Presentation\": \"OK\", \"MC Options Presentation\": \"OK\", \"Answer Evaluation\": \"One\", \"Ground Truth Answer Evaluation\": \"Correct\", \"Classification\": \"OK\"}"
 )
 
-
-def predict_gpt4(client, model_name, prompt, generation_configs, messages=None):
+def predict_gpt4(client, model_name, prompt, generation_configs):
     response = client.chat.completions.create(
         model=model_name,
-        messages=(
-            [
-                {"role": "system", "content": INSTRUCTION},
-                {"role": "user", "content": prompt},
-            ]
-            if not messages
-            else messages
-        ),
+        messages=[{"role": "system", "content": INSTRUCTION}, {"role": "user", "content": prompt}],
         **generation_configs
     )
     if response and response.choices:
@@ -49,26 +40,22 @@ def predict_gpt4(client, model_name, prompt, generation_configs, messages=None):
 
     return prediction
 
-
 def predict_llama(model, tokenizer, prompt, max_new_tokens, device):
     input_ids = tokenizer(prompt, return_tensors="pt").input_ids.to(device)
     attention_mask = torch.ones_like(input_ids).to(device)
     pad_token_id = tokenizer.pad_token_id
 
     output = model.generate(
-        input_ids,
-        attention_mask=attention_mask,
+        input_ids, 
+        attention_mask=attention_mask, 
         pad_token_id=pad_token_id,
-        max_new_tokens=max_new_tokens,
+        max_new_tokens=max_new_tokens, 
         num_return_sequences=1,
-        do_sample=False,
-        temperature=0.0,
+        do_sample = False,
+        temperature = 0.0
     )
-    prediction = tokenizer.decode(
-        output[0, input_ids.shape[1] :], skip_special_tokens=True
-    )
+    prediction = tokenizer.decode(output[0, input_ids.shape[1]:], skip_special_tokens=True)
     return prediction
-
 
 def predict_claude(client, prompt):
     response = client.messages.create(
@@ -76,18 +63,9 @@ def predict_claude(client, prompt):
         max_tokens=200,
         temperature=0.0,
         system=INSTRUCTION,
-        messages=[{"role": "user", "content": prompt}],
+        messages=[
+            {"role": "user", "content": prompt}
+        ]
     )
     prediction = response.content[0].text
-    return prediction
-
-
-def fewshot_predict_gpt4(client, model_name, messages, generation_configs):
-    response = client.chat.completions.create(
-        model=model_name, messages=messages, **generation_configs
-    )
-    if response and response.choices:
-        prediction = response.choices[0].message.content
-    else:
-        prediction = ""
     return prediction
