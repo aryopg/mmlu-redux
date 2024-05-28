@@ -249,6 +249,18 @@ def main(args):
             "presence_penalty": 0,
             "max_tokens": 200,
         }
+    if args.model_type == "gpt4turbo":
+        openai_client = OpenAI(
+            api_key=os.getenv("OPENAI_API_KEY", OPENAI_API_KEY),
+        )
+        gpt4_model_name = "gpt-4-turbo"
+        gpt4_generation_configs = {
+            "temperature": 0.0,
+            "top_p": 1,
+            "frequency_penalty": 0,
+            "presence_penalty": 0,
+            "max_tokens": 200,
+        }
     elif args.model_type == "llama":
         login(HF_READ_TOKEN)
         llm_path = "meta-llama/Meta-Llama-3-70B-Instruct"
@@ -290,6 +302,17 @@ def main(args):
         answer = dataset[i]["answer"]
 
         if args.model_type == "gpt4":
+            messages = few_shot_prompt(
+                FEW_SHOT_EXAMPLES, INSTRUCTION, question, choices, answer
+            )
+            prediction = predict_gpt4(
+                openai_client,
+                gpt4_model_name,
+                None,
+                gpt4_generation_configs,
+                messages=messages,
+            )
+        elif args.model_type == "gpt4turbo":
             messages = few_shot_prompt(
                 FEW_SHOT_EXAMPLES, INSTRUCTION, question, choices, answer
             )
@@ -372,7 +395,7 @@ if __name__ == "__main__":
         "--model_type",
         type=str,
         required=True,
-        choices=["gpt4", "llama", "claude"],
+        choices=["gpt4", 'gpt4turbo', "llama", "claude"],
         help="Type of model to use for prediction",
     )
     parser.add_argument(
