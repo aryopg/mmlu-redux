@@ -1,4 +1,4 @@
-# Don't Send Troops to Stop Ebola: Addressing Groundtruth Errors in MMLU
+# ARE WE DONE WITH MMLU?
 
 ## Proof-of-Concept
 
