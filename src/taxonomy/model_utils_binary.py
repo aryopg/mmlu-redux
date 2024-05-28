@@ -70,24 +70,23 @@ def predict_llama(model, tokenizer, prompt, max_new_tokens, device):
     return prediction
 
 
-def predict_claude(client, prompt):
+def predict_claude(client, messages):
+    system_message = None
+    formatted_messages = []
+
+    for message in messages:
+        if message["role"] == "system":
+            system_message = message["content"]
+        else:
+            formatted_messages.append({"role": message["role"], "content": message["content"]})
+
     response = client.messages.create(
         model="claude-3-opus-20240229",
-        max_tokens=200,
+        max_tokens=700,
         temperature=0.0,
-        system=INSTRUCTION,
-        messages=[{"role": "user", "content": prompt}],
+        system=system_message,
+        messages=formatted_messages
     )
+
     prediction = response.content[0].text
-    return prediction
-
-
-def fewshot_predict_gpt4(client, model_name, messages, generation_configs):
-    response = client.chat.completions.create(
-        model=model_name, messages=messages, **generation_configs
-    )
-    if response and response.choices:
-        prediction = response.choices[0].message.content
-    else:
-        prediction = ""
     return prediction
