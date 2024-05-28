@@ -147,7 +147,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Evaluate models on Mini-MMLU dataset")
     parser.add_argument("--model_type", type=str, required=True,
-                        choices=["gpt4", "gpt4-turbo", "llama", "claude"],
+                        choices=["gpt4", "gpt4turbo", "llama", "claude"],
                         help="Type of model to use for prediction")
     parser.add_argument("--config", type=str, required=True,
                         help="Configuration of the mini-mmlu dataset to use")

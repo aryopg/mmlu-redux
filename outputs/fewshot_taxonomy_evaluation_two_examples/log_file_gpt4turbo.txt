@@ -1,0 +1,9 @@
+Model Type: gpt4turbo
+Config: machine_learning
+Metrics: {'exact_match': 0.81, 'confusion_matrix': array([[ 2,  0,  0,  0,  0],
+       [ 6, 79,  0,  0,  0],
+       [ 0,  4,  0,  0,  0],
+       [ 0,  1,  0,  0,  0],
+       [ 1,  2,  0,  0,  0]]), 'precision': 0.8220025839793281, 'recall': 0.81, 'f1_score': 0.8108155844155843}
+Model Type: gpt4turbo
+Config: professional_law

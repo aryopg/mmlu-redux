@@ -37,8 +37,8 @@ from src.taxonomy.data_utils import (
     normalize_error_type,
     verbaliser,
 )
-from src.taxonomy.evaluations import compute_metrics, few_shot_prompt
-from src.taxonomy.model_utils import (
+from src.taxonomy.evaluations import compute_metrics_binary, few_shot_prompt
+from src.taxonomy.model_utils_binary import (
     INSTRUCTION,
     predict_claude,
     predict_gpt4,
@@ -53,7 +53,7 @@ FEW_SHOT_EXAMPLES = [
         "response": {
             "Question Presentation": "ok",
             "MC Options Presentation": "ok",
-            "Answer Evaluation": "one",
+            "Answer Evaluation": "ok",
             "Ground Truth Answer Evaluation": "ok",
             "Classification": "ok",
             "Answer": "B. Mars",
@@ -66,10 +66,10 @@ FEW_SHOT_EXAMPLES = [
         "response": {
             "Question Presentation": "ok",
             "MC Options Presentation": "ok",
-            "Answer Evaluation": "one",
+            "Answer Evaluation": "ok",
             "Ground Truth Answer Evaluation": "ok",
-            "Classification": "ok",
-            "Answer": "D. Pacific Ocean",
+            "Classification": "not ok",
+            "Answer": "",
         },
     },
     {
@@ -81,7 +81,7 @@ FEW_SHOT_EXAMPLES = [
             "MC Options Presentation": "not ok",
             "Answer Evaluation": "N/A",
             "Ground Truth Answer Evaluation": "N/A",
-            "Classification": "bad options clarity",
+            "Classification": "not ok",
             "Answer": "",
         },
     },
@@ -94,7 +94,7 @@ FEW_SHOT_EXAMPLES = [
             "MC Options Presentation": "not ok",
             "Answer Evaluation": "N/A",
             "Ground Truth Answer Evaluation": "N/A",
-            "Classification": "bad options clarity",
+            "Classification": "not ok",
             "Answer": "",
         },
     },
@@ -107,7 +107,7 @@ FEW_SHOT_EXAMPLES = [
             "MC Options Presentation": "N/A",
             "Answer Evaluation": "N/A",
             "Ground Truth Answer Evaluation": "N/A",
-            "Classification": "bad question clarity",
+            "Classification": "not ok",
             "Answer": "",
         },
     },
@@ -120,7 +120,7 @@ FEW_SHOT_EXAMPLES = [
             "MC Options Presentation": "N/A",
             "Answer Evaluation": "N/A",
             "Ground Truth Answer Evaluation": "N/A",
-            "Classification": "bad question clarity",
+            "Classification": "not ok",
             "Answer": "",
         },
     },
@@ -131,9 +131,9 @@ FEW_SHOT_EXAMPLES = [
         "response": {
             "Question Presentation": "ok",
             "MC Options Presentation": "ok",
-            "Answer Evaluation": "one",
+            "Answer Evaluation": "not ok",
             "Ground Truth Answer Evaluation": "not ok",
-            "Classification": "wrong groundtruth",
+            "Classification": "not ok",
             "Answer": "D. Apple",
         },
     },
@@ -144,9 +144,9 @@ FEW_SHOT_EXAMPLES = [
         "response": {
             "Question Presentation": "ok",
             "MC Options Presentation": "ok",
-            "Answer Evaluation": "one",
+            "Answer Evaluation": "not ok",
             "Ground Truth Answer Evaluation": "not ok",
-            "Classification": "wrong groundtruth",
+            "Classification": "not ok",
             "Answer": "D. Jakarta",
         },
     },
@@ -157,9 +157,9 @@ FEW_SHOT_EXAMPLES = [
         "response": {
             "Question Presentation": "ok",
             "MC Options Presentation": "ok",
-            "Answer Evaluation": "multiple",
+            "Answer Evaluation": "not ok",
             "Ground Truth Answer Evaluation": "N/A",
-            "Classification": "multiple correct answers",
+            "Classification": "not ok",
             "Answer": "A. Russia,B. Turkey",
         },
     },
@@ -170,9 +170,9 @@ FEW_SHOT_EXAMPLES = [
         "response": {
             "Question Presentation": "ok",
             "MC Options Presentation": "ok",
-            "Answer Evaluation": "multiple",
+            "Answer Evaluation": "not ok",
             "Ground Truth Answer Evaluation": "N/A",
-            "Classification": "multiple correct answers",
+            "Classification": "not ok",
             "Answer": "A. California, B. Texas, D. Florida",
         },
     },
@@ -183,9 +183,9 @@ FEW_SHOT_EXAMPLES = [
         "response": {
             "Question Presentation": "ok",
             "MC Options Presentation": "ok",
-            "Answer Evaluation": "none",
+            "Answer Evaluation": "not ok",
             "Ground Truth Answer Evaluation": "N/A",
-            "Classification": "no correct answer",
+            "Classification": "not ok",
             "Answer": "Paris",
         },
     },
@@ -196,9 +196,9 @@ FEW_SHOT_EXAMPLES = [
         "response": {
             "Question Presentation": "ok",
             "MC Options Presentation": "ok",
-            "Answer Evaluation": "none",
+            "Answer Evaluation": "not ok",
             "Ground Truth Answer Evaluation": "N/A",
-            "Classification": "no correct answer",
+            "Classification": "not ok",
             "Answer": "",
         },
     },
@@ -223,6 +223,14 @@ def create_messages(
 
 
 def main(args):
+    log_file = "./outputs/fewshot_taxonomy_binary_evaluation/log_file_binary.txt"
+
+    os.makedirs(os.path.dirname(log_file), exist_ok=True)
+
+    with open(log_file, "a") as f:
+        f.write(f"Model Type: {args.model_type}\n")
+        f.write(f"Config: {args.config}\n")
+
     dataset = load_dataset(
         "edinburgh-dawg/mini-mmlu", args.config, split="test", token=HF_READ_TOKEN
     )
@@ -234,6 +242,18 @@ def main(args):
             api_key=os.getenv("OPENAI_API_KEY", OPENAI_API_KEY),
         )
         gpt4_model_name = "gpt-4o"
+        gpt4_generation_configs = {
+            "temperature": 0.0,
+            "top_p": 1,
+            "frequency_penalty": 0,
+            "presence_penalty": 0,
+            "max_tokens": 200,
+        }
+    elif args.model_type == "gpt4turbo":
+        openai_client = OpenAI(
+            api_key=os.getenv("OPENAI_API_KEY", OPENAI_API_KEY),
+        )
+        gpt4_model_name = "gpt-4-turbo"
         gpt4_generation_configs = {
             "temperature": 0.0,
             "top_p": 1,
@@ -282,7 +302,20 @@ def main(args):
         answer = dataset[i]["answer"]
 
         if args.model_type == "gpt4":
-            messages = few_shot_prompt(FEW_SHOT_EXAMPLES, question, choices, answer)
+            messages = few_shot_prompt(
+                FEW_SHOT_EXAMPLES, INSTRUCTION, question, choices, answer
+            )
+            prediction = predict_gpt4(
+                openai_client,
+                gpt4_model_name,
+                None,
+                gpt4_generation_configs,
+                messages=messages,
+            )
+        elif args.model_type == "gpt4turbo":
+            messages = few_shot_prompt(
+                FEW_SHOT_EXAMPLES, INSTRUCTION, question, choices, answer
+            )
             prediction = predict_gpt4(
                 openai_client,
                 gpt4_model_name,
@@ -291,7 +324,9 @@ def main(args):
                 messages=messages,
             )
         elif args.model_type == "llama":
-            messages = few_shot_prompt(FEW_SHOT_EXAMPLES, question, choices, answer)
+            messages = few_shot_prompt(
+                FEW_SHOT_EXAMPLES, INSTRUCTION, question, choices, answer
+            )
             prediction = predict_llama(
                 llama_model,
                 llama_tokenizer,
@@ -301,7 +336,9 @@ def main(args):
             )
             prediction = extract_braced_content(prediction)
         elif args.model_type == "claude":
-            messages = few_shot_prompt(FEW_SHOT_EXAMPLES, question, choices, answer)
+            messages = few_shot_prompt(
+                FEW_SHOT_EXAMPLES, INSTRUCTION, question, choices, answer
+            )
             prediction = predict_claude(claude_client, messages)
 
         try:
@@ -330,13 +367,24 @@ def main(args):
             normalize_error_type(predicted_error_type),
         ]
 
-    metrics = compute_metrics(pred_df)
-    print(f"Metrics for {args.config}:")
-    print(metrics)
+    pred_df["error_type_ok"] = pred_df["error_type"].apply(
+        lambda x: "ok" if x == "ok" else "notok"
+    )
+
+    pred_df["predicted_error_type"] = (
+        pred_df["predicted_error_type"].str.strip().str.lower()
+    )
+    pred_df["error_type_ok"] = pred_df["error_type_ok"].str.strip().str.lower()
+    exact_match = (pred_df["predicted_error_type"] == pred_df["error_type_ok"]).mean()
+
+    metrics = compute_metrics_binary(pred_df)
+    print(f"Metrics: {metrics}")
+    with open(log_file, "a") as f:
+        f.write(f"Metrics: {metrics}\n")
 
     pred_df.to_csv(
-        f"./outputs/fewshot_taxonomy_evaluation/"
-        f"mini_mmlu_groundtruth_correctness_fewshot_{args.model_type}_{args.config}.csv",
+        f"./outputs/fewshot_taxonomy_binary_evaluation/"
+        f"updated_binary_mini_mmlu_groundtruth_correctness_{args.model_type}_{args.config}.csv",
         index=False,
     )
 
@@ -347,7 +395,7 @@ if __name__ == "__main__":
         "--model_type",
         type=str,
         required=True,
-        choices=["gpt4", "llama", "claude"],
+        choices=["gpt4","gpt4turbo", "llama", "claude"],
         help="Type of model to use for prediction",
     )
     parser.add_argument(

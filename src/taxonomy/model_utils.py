@@ -22,7 +22,7 @@ INSTRUCTION = (
     "4.2. If No, classify as Wrong Groundtruth.\n"
     "Provide your assessment in JSON format with keys 'Question Presentation', 'MC Options Presentation', 'Answer Evaluation', 'Ground Truth Answer Evaluation', 'Classification'. "
     "The 'classification' is either OK, Wrong Groundtruth, No Correct Answer, Multiple Correct Answers, Bad Options Clarity, or Bad Question Clarity.\n\n"
-    "FOLLOW THE EXACT EXAMPLE ANSWER FORMAT WITHOUT PROVIDING EXPLANATION"
+    "FOLLOW THE EXACT EXAMPLE ANSWER FORMAT WITHOUT PROVIDING ANY EXPLANATION AND REASONING ON THE FINAL ANSWER\n"
     "# Example Answer:\n"
     "{\"Question Presentation\": \"OK\", \"MC Options Presentation\": \"OK\", \"Answer Evaluation\": \"One\", \"Ground Truth Answer Evaluation\": \"Correct\", \"Classification\": \"OK\"}"
 )
@@ -59,7 +59,7 @@ def predict_llama(model, tokenizer, prompt, max_new_tokens, device):
 
 def predict_claude(client, prompt):
     response = client.messages.create(
-        model="claude-3-haiku-20240229",
+        model="claude-3-opus-20240229",
         max_tokens=200,
         temperature=0.0,
         system=INSTRUCTION,

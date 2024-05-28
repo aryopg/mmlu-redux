@@ -139,7 +139,7 @@ def main(args):
         f.write(f"Metrics: {metrics}\n")
 
     pred_df.to_csv(f"./outputs/zeroshot_taxonomy_evaluation"
-                   f"finalised_mini_mmlu_groundtruth_correctness_zeroshot_{args.model_type}_{args.config}.csv", index=False)
+                   f"mini_mmlu_groundtruth_correctness_zeroshot_{args.model_type}_{args.config}.csv", index=False)
 
 
 if __name__ == "__main__":
