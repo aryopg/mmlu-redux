@@ -1,0 +1,66 @@
+Model Type: llama
+Config: virology
+Model Type: llama
+Config: virology
+Model Type: llama
+Config: virology
+Model Type: llama
+Config: virology
+Exact Match: 0.5800
+Model Type: llama
+Config: virology
+Model Type: llama
+Config: virology
+Model Type: llama
+Config: virology
+Exact Match: 1.0000
+Model Type: llama
+Config: virology
+Model Type: llama
+Config: virology
+Exact Match: 1.0000
+Model Type: llama
+Config: virology
+Exact Match: 1.0000
+Model Type: llama
+Config: virology
+Exact Match: 1.0000
+Model Type: llama
+Config: virology
+Exact Match: 1.0000
+Model Type: llama
+Config: virology
+Model Type: llama
+Config: virology
+Model Type: llama
+Config: virology
+Model Type: llama
+Config: virology
+Model Type: llama
+Config: virology
+Model Type: llama
+Config: virology
+Model Type: llama
+Config: virology
+Model Type: llama
+Config: virology
+Exact Match: 0.7600
+Model Type: llama
+Config: college_mathematics
+Exact Match: 0.9900
+Model Type: llama
+Config: econometrics
+Exact Match: 0.9500
+Model Type: llama
+Config: formal_logic
+Exact Match: 0.8600
+Model Type: llama
+Config: formal_logic
+Exact Match: 0.8100
+Exact Match: 0.9700
+Exact Match: 0.8900
+Exact Match: 0.8200
+Exact Match: 0.9000
+Exact Match: 0.6100
+Model Type: llama
+Config: formal_logic
