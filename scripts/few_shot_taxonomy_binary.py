@@ -68,8 +68,8 @@ FEW_SHOT_EXAMPLES = [
             "MC Options Presentation": "ok",
             "Answer Evaluation": "ok",
             "Ground Truth Answer Evaluation": "ok",
-            "Classification": "not ok",
-            "Answer": "",
+            "Classification": "ok",
+            "Answer": "D. Pacific Ocean",
         },
     },
     {
