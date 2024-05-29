@@ -64,3 +64,13 @@ Exact Match: 0.9000
 Exact Match: 0.6100
 Model Type: llama
 Config: formal_logic
+Exact Match: 0.7500
+Exact Match: 0.9900
+Exact Match: 0.9600
+Exact Match: 0.8700
+Exact Match: 0.8100
+Exact Match: 0.9800
+Exact Match: 0.8900
+Exact Match: 0.8200
+Exact Match: 0.9000
+Exact Match: 0.5900
