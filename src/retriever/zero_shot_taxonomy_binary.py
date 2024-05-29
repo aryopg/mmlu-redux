@@ -58,12 +58,14 @@ def main(args):
     # with open(log_file, "w") as f:
     #     f.write(f"Model Type: {args.model_type}\n")
     #     f.write(f"Config: {args.config}\n")
-    with open(log_file, "a") as f:
-        f.write(f"Model Type: {args.model_type}\n")
-        f.write(f"Config: {args.config}\n")
+    # with open(log_file, "a") as f:
+    #     f.write(f"Model Type: {args.model_type}\n")
+    #     f.write(f"Config: {args.config}\n")
 
     config_list = ['college_chemistry', 'college_mathematics', 'econometrics', 'formal_logic', 'global_facts', \
     'high_school_physics', 'machine_learning', 'professional_law', 'public_relations', 'virology']
+    
+   
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -101,7 +103,11 @@ def main(args):
         )
     for c in config_list:
         args.config = c
-        print("=======",c,"==="*10)
+
+        with open(log_file, "a") as f:
+            f.write(f"Model Type: {args.model_type}\n")
+            f.write(f"Config: {args.config}\n")
+       
         dataset = load_dataset(
         "edinburgh-dawg/mini-mmlu", args.config, split="test", token=HF_READ_TOKEN
         )
