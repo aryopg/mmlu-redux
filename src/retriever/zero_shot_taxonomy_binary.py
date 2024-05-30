@@ -69,11 +69,13 @@ def main(args):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    if args.model_type == "gpt4":
+    if args.model_type == "gpt-4-turbo":
         openai_client = OpenAI(
             api_key=os.getenv("OPENAI_API_KEY", OPENAI_API_KEY),
         )
-        gpt4_model_name = "gpt-4o"
+        #gpt4_model_name = "gpt-4o"
+        gpt4_model_name = "gpt-4-turbo"
+
         gpt4_generation_configs = {
             "temperature": 0.0,
             "top_p": 1,
@@ -132,7 +134,7 @@ def main(args):
             verbalised_text = verbaliser(question, choices, answer)
             verbalised_text = "Context: " + context + "\n" + verbalised_text
 
-            if args.model_type == "gpt4":
+            if args.model_type == "gpt-4-turbo":
                 prediction = predict_gpt4(
                     openai_client, gpt4_model_name, verbalised_text, gpt4_generation_configs
                 )
@@ -202,7 +204,7 @@ if __name__ == "__main__":
         "--model_type",
         type=str,
         required=True,
-        choices=["gpt4", "llama", "claude"],
+        choices=["gpt-4-turbo", "llama", "claude"],
         help="Type of model to use for prediction",
     )
     parser.add_argument(
