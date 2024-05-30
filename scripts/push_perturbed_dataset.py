@@ -38,7 +38,7 @@ def push_perturbed_data(perturbation, push):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--perturbation', help='Perturbation type. Values accepted: BOC, BQC, MCA, NCA, WG',
-                        default='BOC')
+                        default='NCA')
     parser.add_argument('--push', help='If true pushes the dataset on HugginFace',
                         default=False, action=argparse.BooleanOptionalAction)
     args = parser.parse_args()
