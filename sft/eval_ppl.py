@@ -38,9 +38,10 @@ def test():
     model, tokenizer = load_model()
 
     with open("mmlu_full_3label_uniform_4096.jsonl") as reader:
-        for i, line in tqdm(enumerate(reader), total=14044-2):
+        for i, line in tqdm(enumerate(reader), total=14044):
             if line.startswith('{"input"'):
                 items = json.loads(line.strip())
+                items["subject"] = items["input"]["messages"][-1]["content"]
                 items["input"]["messages"][-1]["content"] = "clean"
                 inputs = tokenizer.apply_chat_template(items["input"]["messages"][:], tokenize=True, add_generation_prompt=False, return_tensors="pt")
                 #print(inputs)
