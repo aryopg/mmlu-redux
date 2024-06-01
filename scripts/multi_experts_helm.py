@@ -23,6 +23,7 @@ from sklearn.metrics import (
     average_precision_score,
     confusion_matrix,
     f1_score,
+    fbeta_score,
     precision_score,
     recall_score,
 )
@@ -63,6 +64,29 @@ def combine_question_choices(question, choices):
     return f"{question}\n{joined_choices}"
 
 
+def calculate_normalised_entropy(predictions):
+    # Calculate total annotations
+    total_annotations = sum(predictions)
+
+    # If there are no annotations, entropy is zero (fully consistent)
+    if total_annotations == 0:
+        return 0.0
+
+    # Calculate proportions
+    proportions = [count / total_annotations for count in predictions]
+
+    # Calculate entropy
+    entropy = -sum(p * math.log2(p) for p in proportions if p > 0)
+
+    # Calculate maximum entropy - log2(num_labels) = log2(4) = 2
+    max_entropy = 2
+
+    # Calculate normalised entropy
+    normalised_entropy = entropy / max_entropy
+
+    return normalised_entropy
+
+
 def get_gt_agreement(gt_answer, llm_preds, top_k):
     subset_llm_preds = llm_preds[:top_k]
     majority_llm_pred = max(set(subset_llm_preds), key=subset_llm_preds.count)
@@ -70,7 +94,29 @@ def get_gt_agreement(gt_answer, llm_preds, top_k):
     gt_ratio_agreement = sum(
         [1 for pred in subset_llm_preds if pred != chr(65 + gt_answer)]
     ) / len(subset_llm_preds)
-    return majority_llm_pred, gt_majority_agreement, gt_ratio_agreement
+
+    # Entropy intra-experts
+    # Initialize a dictionary with possible labels as keys and counts as values
+    possible_labels = ["A", "B", "C", "D"]
+    label_counts = {label: 0 for label in possible_labels}
+
+    # Count occurrences of each label in the list
+    for label in subset_llm_preds:
+        if label.strip() not in label_counts:
+            print(f"{label} is not a valid answer.")
+            continue
+        label_counts[label.strip()] += 1
+
+    # Create the data row based on the counts
+    data_row = [label_counts[label] for label in possible_labels]
+    normalised_entropy = calculate_normalised_entropy(data_row)
+
+    return (
+        majority_llm_pred,
+        gt_majority_agreement,
+        gt_ratio_agreement,
+        normalised_entropy,
+    )
 
 
 def calculate_performance_metrics(pred_df, top_ks):
@@ -82,6 +128,7 @@ def calculate_performance_metrics(pred_df, top_ks):
     gt_majority_agreement_precisions = {k: 0 for k in top_ks}
     gt_majority_agreement_recalls = {k: 0 for k in top_ks}
     gt_majority_agreement_f1_scores = {k: 0 for k in top_ks}
+    gt_majority_agreement_f2_scores = {k: 0 for k in top_ks}
     gt_ratio_agreement_tps = {k: 0 for k in top_ks}
     gt_ratio_agreement_tns = {k: 0 for k in top_ks}
     gt_ratio_agreement_fns = {k: 0 for k in top_ks}
@@ -90,7 +137,26 @@ def calculate_performance_metrics(pred_df, top_ks):
     gt_ratio_agreement_precisions = {k: 0 for k in top_ks}
     gt_ratio_agreement_recalls = {k: 0 for k in top_ks}
     gt_ratio_agreement_f1_scores = {k: 0 for k in top_ks}
-    gt_ratio_agreement_auprcs = {k: 0 for k in top_ks}
+    gt_ratio_agreement_f2_scores = {k: 0 for k in top_ks}
+    # gt_ratio_agreement_auprcs = {k: 0 for k in top_ks}
+    entropy_tps = {k: 0 for k in top_ks}
+    entropy_tns = {k: 0 for k in top_ks}
+    entropy_fns = {k: 0 for k in top_ks}
+    entropy_fps = {k: 0 for k in top_ks}
+    entropy_accs = {k: 0 for k in top_ks}
+    entropy_precisions = {k: 0 for k in top_ks}
+    entropy_recalls = {k: 0 for k in top_ks}
+    entropy_f1_scores = {k: 0 for k in top_ks}
+    entropy_f2_scores = {k: 0 for k in top_ks}
+    ratio_w_entropy_tps = {k: 0 for k in top_ks}
+    ratio_w_entropy_tns = {k: 0 for k in top_ks}
+    ratio_w_entropy_fns = {k: 0 for k in top_ks}
+    ratio_w_entropy_fps = {k: 0 for k in top_ks}
+    ratio_w_entropy_accs = {k: 0 for k in top_ks}
+    ratio_w_entropy_precisions = {k: 0 for k in top_ks}
+    ratio_w_entropy_recalls = {k: 0 for k in top_ks}
+    ratio_w_entropy_f1_scores = {k: 0 for k in top_ks}
+    ratio_w_entropy_f2_scores = {k: 0 for k in top_ks}
 
     for k in top_ks:
         pred_df[f"pred_gt_majority_agreement_top_{k}"] = pred_df[
@@ -99,7 +165,22 @@ def calculate_performance_metrics(pred_df, top_ks):
 
         pred_df[f"pred_gt_ratio_agreement_top_{k}"] = pred_df[
             f"gt_ratio_agreement_top_{k}"
-        ].apply(lambda x: 0 if x >= 0.5 else 1)
+        ].apply(lambda x: 0 if x < 0.5 else 1)
+
+        pred_df[f"pred_entropy_top_{k}"] = pred_df[f"entropy_top_{k}"].apply(
+            lambda x: 0 if x < 0.5 else 1
+        )
+
+        pred_df[f"pred_ratio_w_entropy_top_{k}"] = pred_df[
+            [f"gt_ratio_agreement_top_{k}", f"entropy_top_{k}"]
+        ].apply(
+            lambda x: (
+                0
+                if x[f"gt_ratio_agreement_top_{k}"] - x[f"entropy_top_{k}"] < 0.5
+                else 1
+            ),
+            axis=1,
+        )
 
         (tn, fp), (fn, tp) = confusion_matrix(
             pred_df["binary_error_type"], pred_df[f"pred_gt_majority_agreement_top_{k}"]
@@ -119,6 +200,11 @@ def calculate_performance_metrics(pred_df, top_ks):
         )
         gt_majority_agreement_f1_scores[k] = f1_score(
             pred_df["binary_error_type"], pred_df[f"pred_gt_majority_agreement_top_{k}"]
+        )
+        gt_majority_agreement_f2_scores[k] = fbeta_score(
+            pred_df["binary_error_type"],
+            pred_df[f"pred_gt_majority_agreement_top_{k}"],
+            beta=2,
         )
 
         (tn, fp), (fn, tp) = confusion_matrix(
@@ -140,8 +226,61 @@ def calculate_performance_metrics(pred_df, top_ks):
         gt_ratio_agreement_f1_scores[k] = f1_score(
             pred_df["binary_error_type"], pred_df[f"pred_gt_ratio_agreement_top_{k}"]
         )
-        gt_ratio_agreement_auprcs[k] = average_precision_score(
-            pred_df["binary_error_type"], pred_df[f"gt_ratio_agreement_top_{k}"]
+        gt_ratio_agreement_f2_scores[k] = fbeta_score(
+            pred_df["binary_error_type"],
+            pred_df[f"pred_gt_ratio_agreement_top_{k}"],
+            beta=2,
+        )
+        # gt_ratio_agreement_auprcs[k] = average_precision_score(
+        #     pred_df["binary_error_type"], pred_df[f"gt_ratio_agreement_top_{k}"]
+        # )
+
+        (tn, fp), (fn, tp) = confusion_matrix(
+            pred_df["binary_error_type"], pred_df[f"pred_entropy_top_{k}"]
+        )
+        entropy_tps[k] = tp
+        entropy_tns[k] = tn
+        entropy_fns[k] = fn
+        entropy_fps[k] = fp
+        entropy_accs[k] = accuracy_score(
+            pred_df["binary_error_type"], pred_df[f"pred_entropy_top_{k}"]
+        )
+        entropy_precisions[k] = precision_score(
+            pred_df["binary_error_type"], pred_df[f"pred_entropy_top_{k}"]
+        )
+        entropy_recalls[k] = recall_score(
+            pred_df["binary_error_type"], pred_df[f"pred_entropy_top_{k}"]
+        )
+        entropy_f1_scores[k] = f1_score(
+            pred_df["binary_error_type"], pred_df[f"pred_entropy_top_{k}"]
+        )
+        entropy_f2_scores[k] = fbeta_score(
+            pred_df["binary_error_type"], pred_df[f"pred_entropy_top_{k}"], beta=2
+        )
+
+        (tn, fp), (fn, tp) = confusion_matrix(
+            pred_df["binary_error_type"], pred_df[f"pred_entropy_top_{k}"]
+        )
+        ratio_w_entropy_tps[k] = tp
+        ratio_w_entropy_tns[k] = tn
+        ratio_w_entropy_fns[k] = fn
+        ratio_w_entropy_fps[k] = fp
+        ratio_w_entropy_accs[k] = accuracy_score(
+            pred_df["binary_error_type"], pred_df[f"pred_ratio_w_entropy_top_{k}"]
+        )
+        ratio_w_entropy_precisions[k] = precision_score(
+            pred_df["binary_error_type"], pred_df[f"pred_ratio_w_entropy_top_{k}"]
+        )
+        ratio_w_entropy_recalls[k] = recall_score(
+            pred_df["binary_error_type"], pred_df[f"pred_ratio_w_entropy_top_{k}"]
+        )
+        ratio_w_entropy_f1_scores[k] = f1_score(
+            pred_df["binary_error_type"], pred_df[f"pred_ratio_w_entropy_top_{k}"]
+        )
+        ratio_w_entropy_f2_scores[k] = fbeta_score(
+            pred_df["binary_error_type"],
+            pred_df[f"pred_ratio_w_entropy_top_{k}"],
+            beta=2,
         )
 
     return {
@@ -153,33 +292,53 @@ def calculate_performance_metrics(pred_df, top_ks):
         "Majority Agreement Precision": gt_majority_agreement_precisions,
         "Majority Agreement Recall": gt_majority_agreement_recalls,
         "Majority Agreement F1 Score": gt_majority_agreement_f1_scores,
-        "Ratio Agreement tp": gt_ratio_agreement_tps,
-        "Ratio Agreement tn": gt_ratio_agreement_tns,
-        "Ratio Agreement fn": gt_ratio_agreement_fns,
-        "Ratio Agreement fp": gt_ratio_agreement_fps,
-        "Ratio Agreement Accuracy": gt_ratio_agreement_accs,
-        "Ratio Agreement Precision": gt_ratio_agreement_precisions,
-        "Ratio Agreement Recall": gt_ratio_agreement_recalls,
-        "Ratio Agreement F1 Score": gt_ratio_agreement_f1_scores,
+        "Majority Agreement F2 Score": gt_majority_agreement_f2_scores,
+        "Ratio Disagreement tp": gt_ratio_agreement_tps,
+        "Ratio Disagreement tn": gt_ratio_agreement_tns,
+        "Ratio Disagreement fn": gt_ratio_agreement_fns,
+        "Ratio Disagreement fp": gt_ratio_agreement_fps,
+        "Ratio Disagreement Accuracy": gt_ratio_agreement_accs,
+        "Ratio Disagreement Precision": gt_ratio_agreement_precisions,
+        "Ratio Disagreement Recall": gt_ratio_agreement_recalls,
+        "Ratio Disagreement F1 Score": gt_ratio_agreement_f1_scores,
+        "Ratio Disagreement F2 Score": gt_ratio_agreement_f2_scores,
+        "Entropy tp": entropy_tps,
+        "Entropy tn": entropy_tns,
+        "Entropy fn": entropy_fns,
+        "Entropy fp": entropy_fps,
+        "Entropy Accuracy": entropy_accs,
+        "Entropy Precision": entropy_precisions,
+        "Entropy Recall": entropy_recalls,
+        "Entropy F1 Score": entropy_f1_scores,
+        "Entropy F2 Score": entropy_f2_scores,
+        "Ratio w/ Entropy tp": ratio_w_entropy_tps,
+        "Ratio w/ Entropy tn": ratio_w_entropy_tns,
+        "Ratio w/ Entropy fn": ratio_w_entropy_fns,
+        "Ratio w/ Entropy fp": ratio_w_entropy_fps,
+        "Ratio w/ Entropy Accuracy": ratio_w_entropy_accs,
+        "Ratio w/ Entropy Precision": ratio_w_entropy_precisions,
+        "Ratio w/ Entropy Recall": ratio_w_entropy_recalls,
+        "Ratio w/ Entropy F1 Score": ratio_w_entropy_f1_scores,
+        "Ratio w/ Entropy F2 Score": ratio_w_entropy_f2_scores,
         # "Ratio Agreement AUPRC": gt_ratio_agreement_auprcs,
     }
 
 
 def plot_metrics_separate(data_dicts, config, outputs_dir):
     num_plots = len(data_dicts)
-    fig, axs = plt.subplots(2, int(num_plots / 2), figsize=(5 * int(num_plots / 2), 20))
+    fig, axs = plt.subplots(4, int(num_plots / 4), figsize=(5 * int(num_plots / 4), 24))
 
     for idx, (label, data) in enumerate(data_dicts.items()):
         keys = list(data.keys())
         values = list(data.values())
-        axs[math.floor(idx / (num_plots / 2))][int(idx % (num_plots / 2))].plot(
+        axs[math.floor(idx / (num_plots / 4))][int(idx % (num_plots / 4))].plot(
             keys, values, marker="o"
         )
-        axs[math.floor(idx / (num_plots / 2))][int(idx % (num_plots / 2))].set_title(
+        axs[math.floor(idx / (num_plots / 4))][int(idx % (num_plots / 4))].set_title(
             label
         )
-        axs[math.floor(idx / (num_plots / 2))][int(idx % (num_plots / 2))].grid(True)
-        # axs[math.floor(idx / (num_plots / 2))][idx].set_ylabel()
+        axs[math.floor(idx / (num_plots / 4))][int(idx % (num_plots / 4))].grid(True)
+        # axs[math.floor(idx / (num_plots / 4))][idx].set_ylabel()
 
     axs[0][-1].set_xlabel("Top K")
     axs[1][-1].set_xlabel("Top K")
@@ -196,7 +355,7 @@ def main():
         print(f"Processing Mini MMLU {config}")
         outputs_dir = "./outputs/multi_expert_helm/"
         # top_ks = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-        top_ks = [1, 3, 5, 7, 9, 10]
+        top_ks = [3, 5, 7, 9, 10]
 
         if not os.path.exists(outputs_dir):
             os.makedirs(outputs_dir)
@@ -234,6 +393,7 @@ def main():
                 f"majority_llm_pred_top_{k}",
                 f"gt_majority_agreement_top_{k}",
                 f"gt_ratio_agreement_top_{k}",
+                f"entropy_top_{k}",
             ]
 
         pred_df = pd.DataFrame(columns=columns)
@@ -286,13 +446,17 @@ def main():
 
             gt_agreements = []
             for k in top_ks:
-                majority_llm_pred, gt_majority_agreement, gt_ratio_agreement = (
-                    get_gt_agreement(dataset[i]["answer"], llm_preds, k)
-                )
+                (
+                    majority_llm_pred,
+                    gt_majority_agreement,
+                    gt_ratio_agreement,
+                    entropy,
+                ) = get_gt_agreement(dataset[i]["answer"], llm_preds, k)
                 gt_agreements += [
                     majority_llm_pred,
                     gt_majority_agreement,
                     gt_ratio_agreement,
+                    entropy,
                 ]
 
             pred_df.loc[i] = (
