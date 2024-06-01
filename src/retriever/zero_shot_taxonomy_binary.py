@@ -160,7 +160,7 @@ def main(args):
                     llama_max_new_tokens,
                     device,
                 )
-                prediction = extract_braced_content(prediction)
+                #prediction = extract_braced_content(prediction)
             elif args.model_type == "claude":
                 prediction = predict_claude(claude_client, verbalised_text)
 
