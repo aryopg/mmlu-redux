@@ -40,8 +40,7 @@ from src.taxonomy.data_utils import (
     verbaliser,
 )
 from src.taxonomy.evaluations import compute_metrics
-from src.taxonomy.model_utils_binary import (
-    INSTRUCTION,
+from model_utils_binary import (  INSTRUCTION,
     predict_claude,
     predict_gpt4,
     predict_llama,
@@ -59,21 +58,38 @@ def main(args):
     # with open(log_file, "w") as f:
     #     f.write(f"Model Type: {args.model_type}\n")
     #     f.write(f"Config: {args.config}\n")
-    with open(log_file, "a") as f:
-        f.write(f"Model Type: {args.model_type}\n")
-        f.write(f"Config: {args.config}\n")
+    # with open(log_file, "a") as f:
+    #     f.write(f"Model Type: {args.model_type}\n")
+    #     f.write(f"Config: {args.config}\n")
 
-    dataset = load_dataset(
-        "edinburgh-dawg/mini-mmlu", args.config, split="test", token=HF_READ_TOKEN
-    )
+    config_list = ['college_chemistry', 'college_mathematics', 'econometrics', 'formal_logic', 'global_facts', \
+    'high_school_physics', 'machine_learning', 'professional_law', 'public_relations', 'virology']
+    
+   
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    if args.model_type == "gpt4":
+    if args.model_type == "gpt-4-turbo":
+        openai_client = OpenAI(
+            api_key=os.getenv("OPENAI_API_KEY", OPENAI_API_KEY),
+        )
+        
+        gpt4_model_name = "gpt-4-turbo"
+
+        gpt4_generation_configs = {
+            "temperature": 0.0,
+            "top_p": 1,
+            "frequency_penalty": 0,
+            "presence_penalty": 0,
+            "max_tokens": 200,
+        }
+    elif args.model_type == "gpt4":
         openai_client = OpenAI(
             api_key=os.getenv("OPENAI_API_KEY", OPENAI_API_KEY),
         )
         gpt4_model_name = "gpt-4o"
+        
+
         gpt4_generation_configs = {
             "temperature": 0.0,
             "top_p": 1,
@@ -101,91 +117,102 @@ def main(args):
         raise ValueError(
             "Invalid model type. Choose from 'gpt4', 'llama', or 'claude'."
         )
+    for c in config_list:
+        args.config = c
 
-    pred_df = pd.DataFrame(
-        columns=[
-            "context",
-            "question",
-            "choices",
-            "answer",
-            "error_type",
-            "model_answer",
-            "predicted_error_type",
-        ]
-    )
+        with open(log_file, "a") as f:
+            f.write(f"Model Type: {args.model_type}\n")
+            f.write(f"Config: {args.config}\n")
+       
+        dataset = load_dataset(
+        "edinburgh-dawg/mini-mmlu", args.config, split="test", token=HF_READ_TOKEN
+        )
+        pred_df = pd.DataFrame(
+            columns=[
+                "context",
+                "question",
+                "choices",
+                "answer",
+                "error_type",
+                "model_answer",
+                "predicted_error_type",
+            ]
+        )
 
-    ret = Retriever(index_type=args.ret_type)
-    for i in tqdm(range(len(dataset))):
-        question = dataset[i]["question"]
-        choices = dataset[i]["choices"]
-        answer = dataset[i]["answer"]
-        context = " ".join(ret.retrieve_paragraphs(question))
-        verbalised_text = verbaliser(question, choices, answer)
-        verbalised_text = "Context: " + context + "\n" + verbalised_text
+        ret = Retriever(index_type=args.ret_type)
+        for i in tqdm(range(len(dataset))):
+            question = dataset[i]["question"]
+            choices = dataset[i]["choices"]
+            answer = dataset[i]["answer"]
+            context = " ".join(ret.retrieve_paragraphs(question))
+            verbalised_text = verbaliser(question, choices, answer)
+            verbalised_text = "Context: " + context + "\n" + verbalised_text
 
-        if args.model_type == "gpt4":
-            prediction = predict_gpt4(
-                openai_client, gpt4_model_name, verbalised_text, gpt4_generation_configs
-            )
-        elif args.model_type == "llama":
-            prediction = predict_llama(
-                llama_model,
-                llama_tokenizer,
-                INSTRUCTION + "\n\n" + verbalised_text,
-                llama_max_new_tokens,
-                device,
-            )
-            prediction = extract_braced_content(prediction)
-        elif args.model_type == "claude":
-            prediction = predict_claude(claude_client, verbalised_text)
+            if args.model_type == "gpt-4-turbo" or args.model_type == "gpt4":
+                prediction = predict_gpt4(
+                    openai_client, gpt4_model_name, verbalised_text, gpt4_generation_configs
+                )
+            elif args.model_type == "llama":
+                prediction = predict_llama(
+                    llama_model,
+                    llama_tokenizer,
+                    INSTRUCTION + "\n\n" + verbalised_text,
+                    llama_max_new_tokens,
+                    device,
+                )
+                #prediction = extract_braced_content(prediction)
+            elif args.model_type == "claude":
+                prediction = predict_claude(claude_client, verbalised_text)
 
-        try:
+            # try:
+            #     model_answer = prediction
+            #     if model_answer.startswith("{") and model_answer.endswith("}"):
+            #         model_answer = model_answer.replace("classification", "Classification")
+            #         prediction_json = json.loads(model_answer)
+            #         predicted_error_type = prediction_json["Classification"]
+            #     else:
+            #         model_answer = prediction
+            #         predicted_error_type = "Invalid Prediction"
+            # except (json.JSONDecodeError, KeyError, IndexError) as e:
+            #     model_answer = prediction
+            #     predicted_error_type = "Invalid Prediction"
+
             model_answer = prediction
-            if model_answer.startswith("{") and model_answer.endswith("}"):
-                model_answer = model_answer.replace("classification", "Classification")
-                prediction_json = json.loads(model_answer)
-                predicted_error_type = prediction_json["Classification"]
-            else:
-                model_answer = prediction
-                predicted_error_type = "Invalid Prediction"
-        except (json.JSONDecodeError, KeyError, IndexError) as e:
-            model_answer = prediction
-            predicted_error_type = "Invalid Prediction"
+            predicted_error_type = prediction.strip().lower()
+            pred_df.loc[i] = [
+                context,
+                question,
+                choices,
+                answer,
+                normalize_error_type(dataset[i]["error_type"]),
+                model_answer,
+                normalize_error_type(predicted_error_type),
+            ]
+        pred_df["error_type_ok"] = pred_df["error_type"].apply(
+            lambda x: "ok" if x == "ok" else "notok"
+        )
 
-        pred_df.loc[i] = [
-            context,
-            question,
-            choices,
-            answer,
-            normalize_error_type(dataset[i]["error_type"]),
-            model_answer,
-            normalize_error_type(predicted_error_type),
-        ]
-    pred_df["error_type_ok"] = pred_df["error_type"].apply(
-        lambda x: "ok" if x == "ok" else "notok"
-    )
+        pred_df["predicted_error_type"] = (
+            pred_df["predicted_error_type"].str.strip().str.lower()
+        )
+        pred_df["error_type_ok"] = pred_df["error_type_ok"].str.strip().str.lower()
+        exact_match = (pred_df["predicted_error_type"] == pred_df["error_type_ok"]).mean()
 
-    pred_df["predicted_error_type"] = (
-        pred_df["predicted_error_type"].str.strip().str.lower()
-    )
-    pred_df["error_type_ok"] = pred_df["error_type_ok"].str.strip().str.lower()
-    exact_match = (pred_df["predicted_error_type"] == pred_df["error_type_ok"]).mean()
+        print(f"Exact Match: {exact_match:.4f}")
+        with open(log_file, "a") as f:
+            f.write(f"Exact Match: {exact_match:.4f}\n")
+        # metrics = compute_metrics(pred_df)
+        # print(metrics)
 
-    print(f"Exact Match: {exact_match:.4f}")
-    with open(log_file, "a") as f:
-        f.write(f"Exact Match: {exact_match:.4f}\n")
-    # metrics = compute_metrics(pred_df)
-    # print(metrics)
-
-    pred_df.to_csv(
-        os.path.join(
-            home_path,
-            "outputs/retriever_evaluation/",
-            f"binary_mini_mmlu_groundtruth_correctness_zeroshot_{args.model_type}_{args.config}_{args.ret_type}.csv",
-        ),
-        index=False,
-    )
-
+        pred_df.to_csv(
+            os.path.join(
+                home_path,
+                "outputs/retriever_evaluation/",
+                f"binary_mini_mmlu_groundtruth_correctness_zeroshot_simple_prompt_{args.model_type}_{args.config}_{args.ret_type}.csv",
+            ),
+            index=False,
+        )
+        
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Evaluate models on Mini-MMLU dataset")
@@ -193,7 +220,7 @@ if __name__ == "__main__":
         "--model_type",
         type=str,
         required=True,
-        choices=["gpt4", "llama", "claude"],
+        choices=["gpt4","gpt-4-turbo", "llama", "claude"],
         help="Type of model to use for prediction",
     )
     parser.add_argument(

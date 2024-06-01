@@ -9,55 +9,63 @@ from src.taxonomy.model_utils import INSTRUCTION
 
 
 def compute_metrics(pred_df):
+    classes = pred_df["error_type"].unique()
     exact_match = (pred_df["predicted_error_type"] == pred_df["error_type"]).mean()
+    cm = confusion_matrix(
+        pred_df["error_type"], pred_df["predicted_error_type"], labels=classes
+    )
 
-    cm = confusion_matrix(pred_df["error_type"], pred_df["predicted_error_type"])
+    for i, class_name in enumerate(classes):
+        pred_df[f"predicted_{class_name}"] = pred_df["predicted_error_type"].apply(
+            lambda x: 1 if x == class_name else 0
+        )
+        pred_df[f"actual_{class_name}"] = pred_df["error_type"].apply(
+            lambda x: 1 if x == class_name else 0
+        )
+
+        pred_df[f"{class_name}_TP"] = (
+            (pred_df[f"predicted_{class_name}"] == 1)
+            & (pred_df[f"actual_{class_name}"] == 1)
+        ).astype(int)
+        TP = pred_df[f"{class_name}_TP"].sum()
+
+        pred_df[f"{class_name}_FP"] = (
+            (pred_df[f"predicted_{class_name}"] == 1)
+            & (pred_df[f"actual_{class_name}"] == 0)
+        ).astype(int)
+        FP = pred_df[f"{class_name}_FP"].sum()
+
+        pred_df[f"{class_name}_FN"] = (
+            (pred_df[f"predicted_{class_name}"] == 0)
+            & (pred_df[f"actual_{class_name}"] == 1)
+        ).astype(int)
+        FN = pred_df[f"{class_name}_FN"].sum()
+
+        pred_df[f"{class_name}_TN"] = (
+            (pred_df[f"predicted_{class_name}"] == 0)
+            & (pred_df[f"actual_{class_name}"] == 0)
+        ).astype(int)
+        TN = pred_df[f"{class_name}_TN"].sum()
 
     precision = precision_score(
-        pred_df["error_type"], pred_df["predicted_error_type"], average=None
+        pred_df["error_type"], pred_df["predicted_error_type"], average="weighted"
     )
-
     recall = recall_score(
-        pred_df["error_type"], pred_df["predicted_error_type"], average=None
+        pred_df["error_type"], pred_df["predicted_error_type"], average="weighted"
+    )
+    f1 = f1_score(
+        pred_df["error_type"], pred_df["predicted_error_type"], average="weighted"
     )
 
-    f1_scores = f1_score(
-        pred_df["error_type"], pred_df["predicted_error_type"], average=None
-    )
-
-    macro_precision = precision_score(
-        pred_df["error_type"], pred_df["predicted_error_type"], average="macro"
-    )
-    macro_recall = recall_score(
-        pred_df["error_type"], pred_df["predicted_error_type"], average="macro"
-    )
-    macro_f1 = f1_score(
-        pred_df["error_type"], pred_df["predicted_error_type"], average="macro"
-    )
-
-    micro_precision = precision_score(
-        pred_df["error_type"], pred_df["predicted_error_type"], average="micro"
-    )
-    micro_recall = recall_score(
-        pred_df["error_type"], pred_df["predicted_error_type"], average="micro"
-    )
-    micro_f1 = f1_score(
-        pred_df["error_type"], pred_df["predicted_error_type"], average="micro"
-    )
-
-    return {
+    metrics = {
         "exact_match": exact_match,
         "confusion_matrix": cm,
         "precision": precision,
         "recall": recall,
-        "f1_scores": f1_scores,
-        "macro_precision": macro_precision,
-        "macro_recall": macro_recall,
-        "macro_f1": macro_f1,
-        "micro_precision": micro_precision,
-        "micro_recall": micro_recall,
-        "micro_f1": micro_f1,
+        "f1_score": f1,
     }
+
+    return metrics
 
 
 def compute_metrics_binary(pred_df):
@@ -116,20 +124,6 @@ def compute_metrics_binary(pred_df):
         "recall": recall,
         "f1_score": f1_score,
     }
-
-
-# def few_shot_prompt(examples, test_question, test_choices, test_answer):
-#     example_prompts = []
-#     for example in examples:
-#         example_prompt = verbaliser(
-#             example["question"], example["choices"], example["answer"]
-#         )
-#         example_prompts.append(f"{example_prompt}\n{json.dumps(example['response'])}")
-
-#     test_prompt = verbaliser(test_question, test_choices, test_answer)
-#     example_prompts.append(test_prompt)
-
-#     return "\n".join(example_prompts)
 
 
 def few_shot_prompt(examples, test_question, test_choices, test_answer):
