@@ -73,8 +73,22 @@ def main(args):
         openai_client = OpenAI(
             api_key=os.getenv("OPENAI_API_KEY", OPENAI_API_KEY),
         )
-        #gpt4_model_name = "gpt-4o"
+        
         gpt4_model_name = "gpt-4-turbo"
+
+        gpt4_generation_configs = {
+            "temperature": 0.0,
+            "top_p": 1,
+            "frequency_penalty": 0,
+            "presence_penalty": 0,
+            "max_tokens": 200,
+        }
+    elif args.model_type == "gpt4":
+        openai_client = OpenAI(
+            api_key=os.getenv("OPENAI_API_KEY", OPENAI_API_KEY),
+        )
+        gpt4_model_name = "gpt-4o"
+        
 
         gpt4_generation_configs = {
             "temperature": 0.0,
@@ -134,7 +148,7 @@ def main(args):
             verbalised_text = verbaliser(question, choices, answer)
             verbalised_text = "Context: " + context + "\n" + verbalised_text
 
-            if args.model_type == "gpt-4-turbo":
+            if args.model_type == "gpt-4-turbo" or args.model_type == "gpt4":
                 prediction = predict_gpt4(
                     openai_client, gpt4_model_name, verbalised_text, gpt4_generation_configs
                 )
@@ -146,23 +160,25 @@ def main(args):
                     llama_max_new_tokens,
                     device,
                 )
-                prediction = extract_braced_content(prediction)
+                #prediction = extract_braced_content(prediction)
             elif args.model_type == "claude":
                 prediction = predict_claude(claude_client, verbalised_text)
 
-            try:
-                model_answer = prediction
-                if model_answer.startswith("{") and model_answer.endswith("}"):
-                    model_answer = model_answer.replace("classification", "Classification")
-                    prediction_json = json.loads(model_answer)
-                    predicted_error_type = prediction_json["Classification"]
-                else:
-                    model_answer = prediction
-                    predicted_error_type = "Invalid Prediction"
-            except (json.JSONDecodeError, KeyError, IndexError) as e:
-                model_answer = prediction
-                predicted_error_type = "Invalid Prediction"
+            # try:
+            #     model_answer = prediction
+            #     if model_answer.startswith("{") and model_answer.endswith("}"):
+            #         model_answer = model_answer.replace("classification", "Classification")
+            #         prediction_json = json.loads(model_answer)
+            #         predicted_error_type = prediction_json["Classification"]
+            #     else:
+            #         model_answer = prediction
+            #         predicted_error_type = "Invalid Prediction"
+            # except (json.JSONDecodeError, KeyError, IndexError) as e:
+            #     model_answer = prediction
+            #     predicted_error_type = "Invalid Prediction"
 
+            model_answer = prediction
+            predicted_error_type = prediction.strip().lower()
             pred_df.loc[i] = [
                 context,
                 question,
@@ -192,11 +208,11 @@ def main(args):
             os.path.join(
                 home_path,
                 "outputs/retriever_evaluation/",
-                f"binary_mini_mmlu_groundtruth_correctness_zeroshot_{args.model_type}_{args.config}_{args.ret_type}.csv",
+                f"binary_mini_mmlu_groundtruth_correctness_zeroshot_simple_prompt_{args.model_type}_{args.config}_{args.ret_type}.csv",
             ),
             index=False,
         )
-
+        
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Evaluate models on Mini-MMLU dataset")
@@ -204,7 +220,7 @@ if __name__ == "__main__":
         "--model_type",
         type=str,
         required=True,
-        choices=["gpt-4-turbo", "llama", "claude"],
+        choices=["gpt4","gpt-4-turbo", "llama", "claude"],
         help="Type of model to use for prediction",
     )
     parser.add_argument(

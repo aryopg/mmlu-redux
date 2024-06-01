@@ -39,6 +39,38 @@ def compute_metrics_binary(pred_df):
 
 
 if __name__ == "__main__":
-    df = pd.read_csv(os.path.join("../../","outputs/retriever_evaluation","binary_mini_mmlu_groundtruth_correctness_zeroshot_llama_virology.csv"))
-    print(compute_metrics_binary(df))
-        
+
+    base_name = "binary_mini_mmlu_groundtruth_correctness_zeroshot"
+
+    models = ["llama","gpt-4-turbo","gpt4"]
+
+    dataset = ['college_chemistry', 'college_mathematics', 'econometrics', 'formal_logic', 'global_facts', \
+    'high_school_physics', 'machine_learning', 'professional_law', 'public_relations', 'virology']
+    
+    methods = ["","_cot","_simple_prompt"]
+    index = ["msmarco-v1-passage","enwiki-paragraphs"]
+
+    with open("./results.txt","w") as f:
+        for m in models:
+            for i in index:
+                for met in methods:
+                    if m =="llama" and (met =="_cot"):
+                        continue
+                    
+                    print(m,met,i,file=f)
+                    em_av = 0
+                    f1_av = 0
+                    for d in dataset:
+
+                        df = pd.read_csv(os.path.join("../../outputs","retriever_evaluation",base_name+met+"_"+m+"_"+d+"_"+i+".csv"))
+                        res = compute_metrics_binary(df)
+                        em_av+=res["exact_match"]
+                        f1_av+=round(res["f1_score"],2)
+
+                        print(str(res["exact_match"])+"/"+str(round(res["f1_score"],2)),file=f)
+                    
+                    print("",file=f)
+                    print(round((em_av/len(dataset)),2),"/",round((f1_av/len(dataset)),2),end="  ",file=f)
+                    print("\n",file=f)
+                    
+            

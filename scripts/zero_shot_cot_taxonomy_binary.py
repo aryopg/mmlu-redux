@@ -62,7 +62,7 @@ def main(args):
         openai_client = OpenAI(
             api_key=os.getenv("OPENAI_API_KEY", OPENAI_API_KEY),
         )
-        gpt4_model_name = "gpt-4o"
+        gpt4_model_name = "gpt-4-turbo"
         gpt4_generation_configs = {
             "temperature": 0.0,
             "top_p": 1,
