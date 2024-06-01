@@ -13,8 +13,8 @@ from transformers import AutoTokenizer
 
 #tokenizer = AutoTokenizer.from_pretrained(base_model_id)
 #lora_model_id = "lora_lr/meta-llama/Meta-Llama-3-8B-Instruct/unaligned/"
-lora_model_id = "lora_full/meta-llama/Meta-Llama-3-8B-Instruct/unaligned/"
-repo_id = f"edinburgh-dawg/mmlu-error-detection-full-llama3"
+lora_model_id = "lora_cast_prob_test_uniform_4096/meta-llama/Meta-Llama-3-8B-Instruct/unaligned/"
+repo_id = f"edinburgh-dawg/mmlu-error-detection-3classes-balanced-step4096-llama3"
 print(lora_model_id)
 print(repo_id)
 model = AutoPeftModelForCausalLM.from_pretrained(lora_model_id)
