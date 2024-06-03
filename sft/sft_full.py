@@ -210,7 +210,7 @@ def main(argv):
     #dev_ds = interleave_datasets([ok_dev_ds, not_ok_dev_ds], probabilities=[0.5, 0.5], seed=42)
     ##dev_ds = concatenate_datasets([ok_dev_ds, not_ok_dev_ds])
 
-    probs = [0.1, 0.1, 0.5, 0.1, 0.1, 0.1] 
+    #probs = [0.1, 0.1, 0.5, 0.1, 0.1, 0.1] 
 
     dev_ds = interleave_datasets([subset_id_to_ds[name]['validation'] for name in subset_lst], probabilities=probs, seed=42)
 

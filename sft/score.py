@@ -55,7 +55,8 @@ def main():
     #with open("mmlu_full.jsonl") as reader:
     #with open("mmlu_full_cat.jsonl") as reader:
     #with open("mmlu_full_cat_uniform_train.jsonl") as reader:
-    with open("mmlu_full_cat_uniform_2048.jsonl") as reader:
+    #with open("mmlu_full_cat_train_4096.jsonl") as reader:
+    with open(sys.argv[1]) as reader:
         for line in reader:
             if line.startswith('{"input"'):
                 items = json.loads(line.strip())
