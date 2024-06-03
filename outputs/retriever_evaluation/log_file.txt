@@ -74,3 +74,183 @@ Exact Match: 0.8900
 Exact Match: 0.8200
 Exact Match: 0.9000
 Exact Match: 0.5900
+Model Type: llama
+Config: virology
+Model Type: llama
+Config: virology
+Model Type: llama
+Config: virology
+Model Type: gpt4
+Config: all
+Model Type: gpt4
+Config: college_chemistry
+Exact Match: 0.7600
+Model Type: gpt4
+Config: college_mathematics
+Exact Match: 0.9200
+Model Type: gpt4
+Config: econometrics
+Exact Match: 0.8500
+Model Type: gpt4
+Config: formal_logic
+Exact Match: 0.7900
+Model Type: gpt4
+Config: global_facts
+Exact Match: 0.6700
+Model Type: gpt4
+Config: high_school_physics
+Exact Match: 0.9200
+Model Type: gpt4
+Config: machine_learning
+Exact Match: 0.8100
+Model Type: gpt4
+Config: professional_law
+Exact Match: 0.8000
+Model Type: gpt4
+Config: public_relations
+Exact Match: 0.8400
+Model Type: gpt4
+Config: virology
+Exact Match: 0.6600
+Model Type: gpt4
+Config: college_chemistry
+Exact Match: 0.7300
+Model Type: gpt4
+Config: college_mathematics
+Exact Match: 0.8800
+Model Type: gpt4
+Config: econometrics
+Exact Match: 0.8800
+Model Type: gpt4
+Config: formal_logic
+Exact Match: 0.7700
+Model Type: gpt4
+Config: global_facts
+Exact Match: 0.7200
+Model Type: gpt4
+Config: high_school_physics
+Exact Match: 0.9100
+Model Type: gpt4
+Config: machine_learning
+Exact Match: 0.8100
+Model Type: gpt4
+Config: professional_law
+Exact Match: 0.7900
+Model Type: gpt4
+Config: public_relations
+Exact Match: 0.8400
+Model Type: gpt4
+Config: virology
+Exact Match: 0.6600
+Model Type: gpt-4-turbo
+Config: college_chemistry
+Exact Match: 0.7400
+Model Type: gpt-4-turbo
+Config: college_mathematics
+Model Type: gpt-4-turbo
+Config: college_chemistry
+Model Type: gpt-4-turbo
+Config: college_chemistry
+Exact Match: 0.9100
+Model Type: gpt-4-turbo
+Config: econometrics
+Exact Match: 0.6900
+Model Type: gpt-4-turbo
+Config: college_mathematics
+Exact Match: 0.7800
+Model Type: gpt-4-turbo
+Config: formal_logic
+Exact Match: 0.8800
+Model Type: gpt-4-turbo
+Config: econometrics
+Exact Match: 0.8300
+Model Type: gpt-4-turbo
+Config: global_facts
+Exact Match: 0.8300
+Model Type: gpt-4-turbo
+Config: high_school_physics
+Exact Match: 0.7900
+Model Type: gpt-4-turbo
+Config: formal_logic
+Exact Match: 0.8500
+Model Type: gpt-4-turbo
+Config: global_facts
+Exact Match: 0.8500
+Model Type: gpt-4-turbo
+Config: machine_learning
+Exact Match: 0.8500
+Model Type: gpt-4-turbo
+Config: high_school_physics
+Exact Match: 0.8200
+Model Type: gpt-4-turbo
+Config: professional_law
+Exact Match: 0.8400
+Model Type: gpt-4-turbo
+Config: machine_learning
+Exact Match: 0.7300
+Model Type: gpt-4-turbo
+Config: public_relations
+Exact Match: 0.7800
+Model Type: gpt-4-turbo
+Config: professional_law
+Exact Match: 0.8400
+Model Type: gpt-4-turbo
+Config: virology
+Exact Match: 0.7600
+Model Type: gpt-4-turbo
+Config: public_relations
+Exact Match: 0.7100
+Exact Match: 0.8400
+Model Type: gpt-4-turbo
+Config: virology
+Exact Match: 0.7000
+Model Type: gpt-4-turbo
+Config: college_chemistry
+Model Type: gpt-4-turbo
+Config: college_chemistry
+Exact Match: 0.0000
+Model Type: gpt-4-turbo
+Config: college_mathematics
+Exact Match: 0.0000
+Model Type: gpt-4-turbo
+Config: college_mathematics
+Exact Match: 0.0000
+Model Type: gpt-4-turbo
+Config: econometrics
+Exact Match: 0.0000
+Model Type: gpt-4-turbo
+Config: econometrics
+Exact Match: 0.0000
+Model Type: gpt-4-turbo
+Config: formal_logic
+Exact Match: 0.0000
+Model Type: gpt-4-turbo
+Config: formal_logic
+Exact Match: 0.0000
+Model Type: gpt-4-turbo
+Config: global_facts
+Exact Match: 0.0000
+Model Type: gpt-4-turbo
+Config: global_facts
+Exact Match: 0.0000
+Model Type: gpt-4-turbo
+Config: high_school_physics
+Exact Match: 0.0000
+Model Type: gpt-4-turbo
+Config: high_school_physics
+Exact Match: 0.0000
+Model Type: gpt-4-turbo
+Config: machine_learning
+Exact Match: 0.0000
+Model Type: gpt-4-turbo
+Config: machine_learning
+Exact Match: 0.0000
+Model Type: gpt-4-turbo
+Config: professional_law
+Exact Match: 0.0000
+Model Type: gpt-4-turbo
+Config: public_relations
+Exact Match: 0.0000
+Model Type: gpt-4-turbo
+Config: virology
+Exact Match: 0.0000

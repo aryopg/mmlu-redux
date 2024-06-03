@@ -2,7 +2,7 @@ import argparse
 import json
 import os
 import sys
-
+import logging
 from tqdm import tqdm
 
 sys.path.append(os.path.join(os.getcwd().split("/src")[0], "src"))
@@ -40,7 +40,7 @@ from src.taxonomy.data_utils import (
     verbaliser,
 )
 from src.taxonomy.evaluations import compute_metrics
-from model_utils_binary import (  INSTRUCTION,
+from model_utils_cot_binary import (  INSTRUCTION,
     predict_claude,
     predict_gpt4,
     predict_llama,
@@ -54,7 +54,7 @@ def main(args):
     if not os.path.exists(os.path.join(home_path, "outputs/retriever_evaluation/")):
         os.makedirs(os.path.join(home_path, "outputs/retriever_evaluation/"))
 
-    log_file = os.path.join(home_path, "outputs/retriever_evaluation/log_file.txt")
+    log_file = os.path.join(home_path, "outputs/retriever_evaluation/log_file_cot.txt")
     # with open(log_file, "w") as f:
     #     f.write(f"Model Type: {args.model_type}\n")
     #     f.write(f"Config: {args.config}\n")
@@ -73,7 +73,7 @@ def main(args):
         openai_client = OpenAI(
             api_key=os.getenv("OPENAI_API_KEY", OPENAI_API_KEY),
         )
-        
+        #gpt4_model_name = "gpt-4o"
         gpt4_model_name = "gpt-4-turbo"
 
         gpt4_generation_configs = {
@@ -81,21 +81,19 @@ def main(args):
             "top_p": 1,
             "frequency_penalty": 0,
             "presence_penalty": 0,
-            "max_tokens": 200,
+            "max_tokens": 4096,
         }
     elif args.model_type == "gpt4":
         openai_client = OpenAI(
             api_key=os.getenv("OPENAI_API_KEY", OPENAI_API_KEY),
         )
         gpt4_model_name = "gpt-4o"
-        
-
         gpt4_generation_configs = {
             "temperature": 0.0,
             "top_p": 1,
             "frequency_penalty": 0,
             "presence_penalty": 0,
-            "max_tokens": 200,
+            "max_tokens": 4096,
         }
     elif args.model_type == "llama":
         login(HF_READ_TOKEN)
@@ -148,7 +146,7 @@ def main(args):
             verbalised_text = verbaliser(question, choices, answer)
             verbalised_text = "Context: " + context + "\n" + verbalised_text
 
-            if args.model_type == "gpt-4-turbo":
+            if args.model_type == "gpt-4-turbo" or args.model_type == "gpt4":
                 prediction = predict_gpt4(
                     openai_client, gpt4_model_name, verbalised_text, gpt4_generation_configs
                 )
@@ -166,6 +164,7 @@ def main(args):
 
             try:
                 model_answer = prediction
+                model_answer = model_answer.split("\n")[-1]
                 if model_answer.startswith("{") and model_answer.endswith("}"):
                     model_answer = model_answer.replace("classification", "Classification")
                     prediction_json = json.loads(model_answer)
@@ -175,6 +174,7 @@ def main(args):
                     predicted_error_type = "Invalid Prediction"
             except (json.JSONDecodeError, KeyError, IndexError) as e:
                 model_answer = prediction
+                logging.error(e)
                 predicted_error_type = "Invalid Prediction"
 
             pred_df.loc[i] = [
@@ -186,13 +186,10 @@ def main(args):
                 model_answer,
                 normalize_error_type(predicted_error_type),
             ]
-        pred_df["error_type_ok"] = pred_df["error_type"].apply(
-            lambda x: "ok" if x == "ok" else "notok"
+        pred_df["error_type_ok"] = pred_df["error_type"].apply(lambda x: "ok" if x == "ok" else "notok"
         )
 
-        pred_df["predicted_error_type"] = (
-            pred_df["predicted_error_type"].str.strip().str.lower()
-        )
+        pred_df["predicted_error_type"] = (pred_df["predicted_error_type"].str.strip().str.lower())
         pred_df["error_type_ok"] = pred_df["error_type_ok"].str.strip().str.lower()
         exact_match = (pred_df["predicted_error_type"] == pred_df["error_type_ok"]).mean()
 
@@ -206,7 +203,7 @@ def main(args):
             os.path.join(
                 home_path,
                 "outputs/retriever_evaluation/",
-                f"binary_mini_mmlu_groundtruth_correctness_zeroshot_{args.model_type}_{args.config}_{args.ret_type}.csv",
+                f"binary_mini_mmlu_groundtruth_correctness_zeroshot_cot_{args.model_type}_{args.config}_{args.ret_type}.csv",
             ),
             index=False,
         )
