@@ -24,13 +24,17 @@ INSTRUCTION = (
     "The 'classification' is either OK, Wrong Groundtruth, No Correct Answer, Multiple Correct Answers, Bad Options Clarity, or Bad Question Clarity.\n\n"
     "FOLLOW THE EXACT EXAMPLE ANSWER FORMAT ALL IN ONE LINE WITHOUT PROVIDING EXPLANATION"
     "# Example Answer:\n"
-    "{\"Question Presentation\": \"OK\", \"MC Options Presentation\": \"OK\", \"Answer Evaluation\": \"One\", \"Ground Truth Answer Evaluation\": \"Correct\", \"Classification\": \"OK\"}"
+    '{"Question Presentation": "OK", "MC Options Presentation": "OK", "Answer Evaluation": "One", "Ground Truth Answer Evaluation": "Correct", "Classification": "OK"}'
 )
+
 
 def predict_gpt4(client, model_name, prompt, generation_configs):
     response = client.chat.completions.create(
         model=model_name,
-        messages=[{"role": "system", "content": INSTRUCTION}, {"role": "user", "content": prompt}],
+        messages=[
+            {"role": "system", "content": INSTRUCTION},
+            {"role": "user", "content": prompt},
+        ],
         **generation_configs
     )
     if response and response.choices:
@@ -40,11 +44,10 @@ def predict_gpt4(client, model_name, prompt, generation_configs):
 
     return prediction
 
+
 def fewshot_predict_gpt4(client, model_name, messages, generation_configs):
     response = client.chat.completions.create(
-        model=model_name,
-        messages=messages,
-        **generation_configs
+        model=model_name, messages=messages, **generation_configs
     )
     if response and response.choices:
         prediction = response.choices[0].message.content
@@ -59,16 +62,19 @@ def predict_llama(model, tokenizer, prompt, max_new_tokens, device):
     pad_token_id = tokenizer.pad_token_id
 
     output = model.generate(
-        input_ids, 
-        attention_mask=attention_mask, 
+        input_ids,
+        attention_mask=attention_mask,
         pad_token_id=pad_token_id,
-        max_new_tokens=max_new_tokens, 
+        max_new_tokens=max_new_tokens,
         num_return_sequences=1,
-        do_sample = False,
-        temperature = 0.0
+        do_sample=False,
+        temperature=0.0,
     )
-    prediction = tokenizer.decode(output[0, input_ids.shape[1]:], skip_special_tokens=True)
+    prediction = tokenizer.decode(
+        output[0, input_ids.shape[1] :], skip_special_tokens=True
+    )
     return prediction
+
 
 def predict_claude(client, prompt):
     response = client.messages.create(
@@ -76,9 +82,7 @@ def predict_claude(client, prompt):
         max_tokens=200,
         temperature=0.0,
         system=INSTRUCTION,
-        messages=[
-            {"role": "user", "content": prompt}
-        ]
+        messages=[{"role": "user", "content": prompt}],
     )
     prediction = response.content[0].text
     return prediction

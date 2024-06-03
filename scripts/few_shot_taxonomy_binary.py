@@ -395,7 +395,7 @@ if __name__ == "__main__":
         "--model_type",
         type=str,
         required=True,
-        choices=["gpt4", 'gpt4turbo', "llama", "claude"],
+        choices=["gpt4", "gpt4turbo", "llama", "claude"],
         help="Type of model to use for prediction",
     )
     parser.add_argument(

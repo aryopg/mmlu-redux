@@ -2,10 +2,12 @@ import json
 import spacy
 import time
 import os
+
 os.environ["PYSERINI_CACHE"] = "/data/cache/"
-os.environ['JAVA_TOOL_OPTIONS'] = '-Xms6400m -Xmx12800m'
+os.environ["JAVA_TOOL_OPTIONS"] = "-Xms6400m -Xmx12800m"
 from pyserini.search.lucene import LuceneSearcher
 from pyserini.search.faiss import FaissSearcher, TctColBertQueryEncoder
+
 
 class Retriever:
     _instances = {}
@@ -20,9 +22,10 @@ class Retriever:
         self.index_type = index_type
 
         if index_type == "tct_colbert-msmarco":
-            encoder = TctColBertQueryEncoder('castorini/tct_colbert-msmarco')
+            encoder = TctColBertQueryEncoder("castorini/tct_colbert-msmarco")
             self.searcher = FaissSearcher.from_prebuilt_index(
-                'msmarco-passage-tct_colbert-hnsw', encoder)
+                "msmarco-passage-tct_colbert-hnsw", encoder
+            )
         elif index_type == "msmarco-v1-passage":
             self.searcher = LuceneSearcher.from_prebuilt_index("msmarco-v1-passage")
         elif index_type == "wikipedia-dpr":
@@ -30,25 +33,17 @@ class Retriever:
         else:
             self.searcher = LuceneSearcher.from_prebuilt_index("enwiki-paragraphs")
 
-    def retrieve_paragraphs(self,query,num_ret=5):
-        
-        hits = self.searcher.search(query,num_ret)
+    def retrieve_paragraphs(self, query, num_ret=5):
+
+        hits = self.searcher.search(query, num_ret)
         paragraphs = []
         for i in range(len(hits)):
             doc = self.searcher.doc(hits[i].docid)
-            if doc.raw()[0]=="{":
+            if doc.raw()[0] == "{":
                 json_doc = json.loads(doc.raw())
-                para = json_doc['contents']  
+                para = json_doc["contents"]
             else:
-                para = doc.raw()   
+                para = doc.raw()
             paragraphs.append(para)
-        
+
         return paragraphs
-
-
-
-            
-        
-
-
-

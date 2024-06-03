@@ -78,14 +78,16 @@ def predict_claude(client, messages):
         if message["role"] == "system":
             system_message = message["content"]
         else:
-            formatted_messages.append({"role": message["role"], "content": message["content"]})
+            formatted_messages.append(
+                {"role": message["role"], "content": message["content"]}
+            )
 
     response = client.messages.create(
         model="claude-3-opus-20240229",
         max_tokens=700,
         temperature=0.0,
         system=system_message,
-        messages=formatted_messages
+        messages=formatted_messages,
     )
 
     prediction = response.content[0].text
