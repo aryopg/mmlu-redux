@@ -13,9 +13,7 @@ from utils import NestedKeyDataset
 def load_model():
     lora_model_id = "lora_lr/meta-llama/Meta-Llama-3-8B-Instruct/unaligned/"
     lora_model_id = "lora_full/meta-llama/Meta-Llama-3-8B-Instruct/unaligned/"
-    lora_model_id = (
-        "lora_cast_prob_uniform/meta-llama/Meta-Llama-3-8B-Instruct/unaligned/"
-    )
+    lora_model_id = "lora_cast_prob_test_uniform_train/meta-llama/Meta-Llama-3-8B-Instruct/unaligned/"
 
     print(lora_model_id)
 
