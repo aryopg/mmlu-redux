@@ -46,16 +46,30 @@ HELM_RANK = [
 ]
 
 CONFIGS = [
+    "high_school_physics",
+    "public_relations",
+    "college_computer_science",
+    "high_school_statistics",
+    "high_school_chemistry",
+    "virology",
+    "college_physics",
+    "business_ethics",
     "college_chemistry",
     "college_mathematics",
     "econometrics",
-    "formal_logic",
-    "global_facts",
-    "high_school_physics",
+    "human_aging",
+    "miscellaneous",
+    "anatomy",
     "machine_learning",
-    "professional_law",
-    "public_relations",
-    "virology",
+    "philosophy",
+    "formal_logic",
+    "electrical_engineering",
+    "logical_fallacies",
+    "professional_accounting",
+    "high_school_mathematics",
+    "college_medicine",
+    "clinical_knowledge",
+    "global_facts",
 ]
 
 
@@ -360,7 +374,7 @@ def main():
         if not os.path.exists(outputs_dir):
             os.makedirs(outputs_dir)
 
-        dataset = load_dataset("edinburgh-dawg/mini-mmlu", config, split="test")
+        dataset = load_dataset("edinburgh-dawg/refined-mmlu", config, split="test")
         ori_llm_preds = pd.read_csv(f"outputs/original_helm_combined/{config}.csv")
 
         # Combine 'question' and 'choices' columns in ori_llm_preds
