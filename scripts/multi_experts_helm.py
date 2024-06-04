@@ -50,6 +50,7 @@ HELM_RANK = [
 ]
 
 CONFIGS = [
+    "business_ethics",
     "high_school_physics",
     "public_relations",
     "college_computer_science",
@@ -57,7 +58,7 @@ CONFIGS = [
     "high_school_chemistry",
     "virology",
     "college_physics",
-    "business_ethics",
+    # "business_ethics",
     "college_chemistry",
     "college_mathematics",
     "econometrics",
@@ -79,23 +80,29 @@ CONFIGS = [
 
 def search(ori_llm_preds, query_question_choices, threshold=90):
     ori_llm_preds["question_choices"] = ori_llm_preds["question_choices"].apply(
-        lambda x: re.sub(r"\s+", "", x)
+        lambda x: x.strip()
     )
+    query_question_choices = query_question_choices.strip()
+    
     llm_pred = ori_llm_preds.loc[
-        ori_llm_preds["question_choices"]
-        == re.sub(
-            r"\s+",
-            "",
-            query_question_choices,
-        )
+        ori_llm_preds["question_choices"] == query_question_choices
     ]
-
+    
     if llm_pred.shape[0] == 1:
         return llm_pred
     elif llm_pred.shape[0] > 1:
         return llm_pred.head(1)
-    elif llm_pred.shape[0] == 0:
-        raise ValueError("No matches")
+    
+    if llm_pred.shape[0] == 0:
+        ori_llm_preds["similarity_ratio"] = ori_llm_preds["question_choices"].apply(
+            lambda x: fuzz.ratio(x, query_question_choices)
+        )
+        llm_pred = ori_llm_preds.loc[ori_llm_preds["similarity_ratio"] >= threshold]
+        
+        if llm_pred.shape[0] > 0:
+            return llm_pred.sort_values(by="similarity_ratio", ascending=False).head(1)
+    
+    raise ValueError("No matches found")
 
     # if llm_pred.shape[0] == 0:
     #     llm_pred = ori_llm_preds.loc[
