@@ -50,7 +50,6 @@ HELM_RANK = [
 ]
 
 CONFIGS = [
-    "business_ethics",
     "high_school_physics",
     "public_relations",
     "college_computer_science",
