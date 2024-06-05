@@ -1,10 +1,14 @@
 import argparse
+import html
 import logging
 import math
 import os
 import re
 import sys
+import unicodedata
 from time import sleep
+
+from unidecode import unidecode
 
 sys.path.append(os.getcwd())
 from dotenv import load_dotenv
@@ -46,21 +50,96 @@ HELM_RANK = [
 ]
 
 CONFIGS = [
+    "high_school_physics",
+    "public_relations",
+    "college_computer_science",
+    "high_school_statistics",
+    "high_school_chemistry",
+    "virology",
+    "college_physics",
+    # "business_ethics",
     "college_chemistry",
     "college_mathematics",
     "econometrics",
-    "formal_logic",
-    "global_facts",
-    "high_school_physics",
+    "human_aging",
+    "miscellaneous",
+    "anatomy",
     "machine_learning",
-    "professional_law",
-    "public_relations",
-    "virology",
+    "philosophy",
+    "formal_logic",
+    "electrical_engineering",
+    "logical_fallacies",
+    "professional_accounting",
+    "high_school_mathematics",
+    "college_medicine",
+    "clinical_knowledge",
+    "global_facts",
 ]
 
 
+def search(ori_llm_preds, query_question_choices, threshold=90):
+    ori_llm_preds["question_choices"] = ori_llm_preds["question_choices"].apply(
+        lambda x: x.strip()
+    )
+    query_question_choices = query_question_choices.strip()
+    
+    llm_pred = ori_llm_preds.loc[
+        ori_llm_preds["question_choices"] == query_question_choices
+    ]
+    
+    if llm_pred.shape[0] == 1:
+        return llm_pred
+    elif llm_pred.shape[0] > 1:
+        return llm_pred.head(1)
+    
+    if llm_pred.shape[0] == 0:
+        ori_llm_preds["similarity_ratio"] = ori_llm_preds["question_choices"].apply(
+            lambda x: fuzz.ratio(x, query_question_choices)
+        )
+        llm_pred = ori_llm_preds.loc[ori_llm_preds["similarity_ratio"] >= threshold]
+        
+        if llm_pred.shape[0] > 0:
+            return llm_pred.sort_values(by="similarity_ratio", ascending=False).head(1)
+    
+    raise ValueError("No matches found")
+
+    # if llm_pred.shape[0] == 0:
+    #     llm_pred = ori_llm_preds.loc[
+    #         ori_llm_preds["question_choices"].apply(
+    #             lambda x: fuzz.ratio(
+    #                 re.sub(r"\s+", "", x),
+    #                 re.sub(
+    #                     r"\s+",
+    #                     "",
+    #                     query_question_choices,
+    #                 ),
+    #             )
+    #         )
+    #         >= threshold
+    #     ]
+    # if llm_pred.shape[0] > 1:
+    #     print("llm_pred: ", llm_pred)
+    #     return search(ori_llm_preds, query_question_choices, threshold + 1)
+    # elif llm_pred.shape[0] == 1:
+    #     return llm_pred
+    # elif llm_pred.shape[0] == 0:
+    #     raise ValueError("No matches")
+
+
+def normalise_string(text):
+    try:
+        # Attempt to decode the text assuming it was misinterpreted as Latin-1
+        decoded_bytes = text.encode("latin1")
+        corrected_text = decoded_bytes.decode("utf-8")
+        return unidecode(corrected_text)
+    except UnicodeDecodeError:
+        return text
+    except UnicodeEncodeError:
+        return unidecode(text)
+
+
 def combine_question_choices(question, choices):
-    joined_choices = "\n".join(choices)
+    joined_choices = "\n".join([normalise_string(choice) for choice in choices])
     return f"{question}\n{joined_choices}"
 
 
@@ -360,13 +439,14 @@ def main():
         if not os.path.exists(outputs_dir):
             os.makedirs(outputs_dir)
 
-        dataset = load_dataset("edinburgh-dawg/mini-mmlu", config, split="test")
+        dataset = load_dataset("edinburgh-dawg/refined-mmlu", config, split="test")
         ori_llm_preds = pd.read_csv(f"outputs/original_helm_combined/{config}.csv")
 
         # Combine 'question' and 'choices' columns in ori_llm_preds
+        ori_llm_preds["question"] = ori_llm_preds["question"].apply(normalise_string)
         ori_llm_preds["question_choices"] = ori_llm_preds.apply(
             lambda x: combine_question_choices(
-                x["question"], ast.literal_eval(x["choices"])
+                normalise_string(x["question"]), ast.literal_eval(x["choices"])
             ),
             axis=1,
         )
@@ -400,43 +480,19 @@ def main():
 
         for i in range(len(dataset)):
             try:
-                query_question_choices = combine_question_choices(
-                    dataset[i]["question"], dataset[i]["choices"]
+                query_question = normalise_string(dataset[i]["question"])
+                query_question_choices = normalise_string(
+                    combine_question_choices(query_question, dataset[i]["choices"])
                 )
-                llm_pred = ori_llm_preds.loc[
-                    ori_llm_preds["question_choices"].apply(
-                        lambda x: re.sub(r"\s+", "", x)
-                    )
-                    == re.sub(
-                        r"\s+",
-                        "",
-                        query_question_choices,
-                    )
-                ]
-                if llm_pred.shape[0] == 0:
-                    print("no matches")
-                    llm_pred = ori_llm_preds.loc[
-                        ori_llm_preds["question_choices"].apply(
-                            lambda x: fuzz.ratio(
-                                re.sub(r"\s+", "", x),
-                                re.sub(
-                                    r"\s+",
-                                    "",
-                                    query_question_choices,
-                                ),
-                            )
-                        )
-                        >= 90
-                    ]
-                    print(llm_pred.shape[0])
+                llm_pred = search(ori_llm_preds, query_question_choices, threshold=90)
                 if llm_pred.shape[0] > 1:
-                    print("many matches!!!")
-                    llm_pred = llm_pred.head(1)
-
+                    llm_pred = search(
+                        ori_llm_preds, query_question_choices, threshold=95
+                    )
                 assert llm_pred.shape[0] == 1
             except Exception as e:
                 print("llm_pred: ", llm_pred)
-                print("question: ", dataset[i]["question"])
+                print("question: ", query_question)
                 print("question_choices: ", query_question_choices)
                 raise e
             # Get majority prediction
@@ -477,9 +533,6 @@ def main():
         pred_df.to_csv(
             os.path.join(outputs_dir, f"mmlu_multi_experts_{config}.csv"), index=False
         )
-        # pred_df = pd.read_csv(
-        #     os.path.join(outputs_dir, f"mmlu_multi_experts_{config}.csv")
-        # )
 
         # Calculate performance metrics of the binary classification
 
