@@ -50,30 +50,36 @@ HELM_RANK = [
 ]
 
 CONFIGS = [
-    "high_school_physics",
-    "public_relations",
-    "college_computer_science",
-    "high_school_statistics",
-    "high_school_chemistry",
-    "virology",
-    "college_physics",
     # "business_ethics",
-    "college_chemistry",
-    "college_mathematics",
-    "econometrics",
-    "human_aging",
-    "miscellaneous",
-    "anatomy",
-    "machine_learning",
-    "philosophy",
-    "formal_logic",
-    "electrical_engineering",
-    "logical_fallacies",
-    "professional_accounting",
-    "high_school_mathematics",
-    "college_medicine",
-    "clinical_knowledge",
-    "global_facts",
+    # "high_school_geography",
+    # "high_school_macroeconomics",
+    # "anatomy",
+    # "astronomy",
+    # "clinical_knowledge",
+    # "college_chemistry",
+    # "college_computer_science",
+    # "college_mathematics",
+    # "college_medicine",
+    # "college_physics",
+    # "conceptual_physics",
+    # "econometrics",
+    # "electrical_engineering",
+    # "formal_logic",
+    # "global_facts",
+    # "high_school_chemistry",
+    # "high_school_mathematics",
+    # "high_school_physics",
+    # "high_school_statistics",
+    # "high_school_us_history",
+    # "human_aging",
+    # "logical_fallacies",
+    # "machine_learning",
+    # "miscellaneous",
+    # "philosophy",
+    # "professional_accounting",
+    # "public_relations",
+    # "virology",
+    "professional_law",
 ]
 
 
@@ -82,25 +88,27 @@ def search(ori_llm_preds, query_question_choices, threshold=90):
         lambda x: x.strip()
     )
     query_question_choices = query_question_choices.strip()
-    
+
     llm_pred = ori_llm_preds.loc[
         ori_llm_preds["question_choices"] == query_question_choices
     ]
-    
+
     if llm_pred.shape[0] == 1:
         return llm_pred
     elif llm_pred.shape[0] > 1:
         return llm_pred.head(1)
-    
+
     if llm_pred.shape[0] == 0:
         ori_llm_preds["similarity_ratio"] = ori_llm_preds["question_choices"].apply(
             lambda x: fuzz.ratio(x, query_question_choices)
         )
         llm_pred = ori_llm_preds.loc[ori_llm_preds["similarity_ratio"] >= threshold]
-        
+
         if llm_pred.shape[0] > 0:
             return llm_pred.sort_values(by="similarity_ratio", ascending=False).head(1)
-    
+        if llm_pred.shape[0] == 0:
+            return search(ori_llm_preds, query_question_choices, threshold - 5)
+
     raise ValueError("No matches found")
 
     # if llm_pred.shape[0] == 0:
@@ -314,6 +322,8 @@ def calculate_performance_metrics(pred_df, top_ks):
         #     pred_df["binary_error_type"], pred_df[f"gt_ratio_agreement_top_{k}"]
         # )
 
+        # print(pred_df["binary_error_type"])
+        # print(pred_df[f"pred_entropy_top_{k}"])
         (tn, fp), (fn, tp) = confusion_matrix(
             pred_df["binary_error_type"], pred_df[f"pred_entropy_top_{k}"]
         )
@@ -491,6 +501,8 @@ def main():
                     )
                 assert llm_pred.shape[0] == 1
             except Exception as e:
+                print("i: ", i)
+                print("dataset[i]: ", dataset[i])
                 print("llm_pred: ", llm_pred)
                 print("question: ", query_question)
                 print("question_choices: ", query_question_choices)
@@ -535,15 +547,16 @@ def main():
         )
 
         # Calculate performance metrics of the binary classification
-
-        performance_metrics = calculate_performance_metrics(pred_df, top_ks)
-        print(performance_metrics)
-        plot_metrics_separate(
-            performance_metrics,
-            config,
-            outputs_dir,
-        )
-
+        try:
+            performance_metrics = calculate_performance_metrics(pred_df, top_ks)
+            print(performance_metrics)
+            plot_metrics_separate(
+                performance_metrics,
+                config,
+                outputs_dir,
+            )
+        except:
+            print("All zero")
         pred_dfs += [pred_df]
 
     # Combine all the dataframes
