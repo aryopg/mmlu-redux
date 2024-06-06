@@ -492,3 +492,16 @@ Exact Match: 0.8100
 Model Type: llama
 Config: virology
 Exact Match: 0.6900
+Model Type: claude
+Config: college_chemistry
+Exact Match: 0.7000
+Model Type: claude
+Config: college_mathematics
+Model Type: claude
+Config: college_chemistry
+Exact Match: 0.4600
+Model Type: claude
+Config: econometrics
+Exact Match: 0.6700
+Model Type: claude
+Config: college_mathematics

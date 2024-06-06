@@ -152,3 +152,7 @@ Exact Match: 0.9100
 Model Type: llama
 Config: virology
 Exact Match: 0.6000
+Model Type: claude
+Config: college_chemistry
+Model Type: claude
+Config: college_chemistry

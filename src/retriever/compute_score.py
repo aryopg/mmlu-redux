@@ -37,13 +37,13 @@ def compute_metrics_binary(pred_df):
         "FP": FP,
         "FN": FN,
         "TN": TN,
-        "precision": round(precision,2),
-        "recall": round(recall,2),
-        "f1_score": round(f1_score,2),
-        "npv": round(npv,2),
-        "tnr": round(tnr,2),
-        "neg_f1": round(neg_f1_score,2),
-        "neg_f2": round(neg_f2_score,2)
+        "precision": round(precision,4),
+        "recall": round(recall,4),
+        "f1_score": round(f1_score,4),
+        "npv": round(npv,4),
+        "tnr": round(tnr,4),
+        "neg_f1": round(neg_f1_score,4),
+        "neg_f2": round(neg_f2_score,4)
     }
 
 
@@ -64,8 +64,8 @@ if __name__ == "__main__":
         for m in models:
             for i in index:
                 for met in methods:
-                    if m =="llama" and (met =="_cot"):
-                        continue
+                    # if m =="llama" and (met =="_cot"):
+                    #     continue
                     
                     print(m,met,i,file=f)
                     em_av = 0
@@ -75,7 +75,7 @@ if __name__ == "__main__":
                         df = pd.read_csv(os.path.join("../../outputs","retriever_evaluation",base_name+met+"_"+m+"_"+d+"_"+i+".csv"))
                         res = compute_metrics_binary(df)
                         em_av+=res["exact_match"]
-                        f1_av+=round(res["f1_score"],2)
+                        f1_av+=round(res["f1_score"],4)
 
                         #print(str(res["exact_match"])+"/"+str(round(res["f1_score"],2)),file=f)
                         print(d,",",res["TP"],",",res["TN"],",",	res["FN"],",",	res["FP"],",",
@@ -83,7 +83,7 @@ if __name__ == "__main__":
                         res["tnr"],",",res["neg_f1"],",", res["neg_f2"],file=f)
                     
                     print("",file=f)
-                    print(round((em_av/len(dataset)),2),"/",round((f1_av/len(dataset)),2),end="  ",file=f)
+                    print(round((em_av/len(dataset)),4),"/",round((f1_av/len(dataset)),4),end="  ",file=f)
                     print("\n",file=f)
                     
             
