@@ -4,7 +4,7 @@ from openai import OpenAI
 import anthropic
 
 INSTRUCTION = (
-"# Task:\n"
+    "# Task:\n"
     "Given a triple consisting of a multiple choice question, its choices, and the corresponding ground truth answer, your task is to classify the triple's correctness to either 'ok' or 'not ok'.\n\n"
     "# Instructions:\n"
     "For each question, let's review step by step:\n\n"
@@ -32,14 +32,17 @@ INSTRUCTION = (
     "## Example Summary Format\n"
     "FOLLOW THE EXACT EXAMPLE FINAL ANSWER FORMAT BELOW AS A FINAL SUMMARY\n"
     "# Final Answer:\n"
-    "{\"Question Presentation\": \"OK\", \"MC Options Presentation\": \"OK\", \"Answer Evaluation\": \"One\", \"Ground Truth Answer Evaluation\": \"Correct\", \"Classification\": \"OK\"}"
+    '{"Question Presentation": "OK", "MC Options Presentation": "OK", "Answer Evaluation": "One", "Ground Truth Answer Evaluation": "Correct", "Classification": "OK"}'
 )
 
 
 def predict_gpt4(client, model_name, prompt, generation_configs):
     response = client.chat.completions.create(
         model=model_name,
-        messages=[{"role": "system", "content": INSTRUCTION}, {"role": "user", "content": prompt}],
+        messages=[
+            {"role": "system", "content": INSTRUCTION},
+            {"role": "user", "content": prompt},
+        ],
         **generation_configs
     )
     if response and response.choices:
@@ -62,9 +65,11 @@ def predict_llama(model, tokenizer, prompt, max_new_tokens, device):
         max_new_tokens=max_new_tokens,
         num_return_sequences=1,
         do_sample=False,
-        temperature=0.0
+        temperature=0.0,
     )
-    prediction = tokenizer.decode(output[0, input_ids.shape[1]:], skip_special_tokens=True)
+    prediction = tokenizer.decode(
+        output[0, input_ids.shape[1] :], skip_special_tokens=True
+    )
     return prediction
 
 
@@ -74,13 +79,11 @@ def predict_claude(client, prompt):
         max_tokens=200,
         temperature=0.0,
         system=INSTRUCTION,
-        messages=[
-            {"role": "user", "content": prompt}
-        ]
+        messages=[{"role": "user", "content": prompt}],
     )
     prediction = response.content[0].text
     return prediction
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     print(INSTRUCTION)

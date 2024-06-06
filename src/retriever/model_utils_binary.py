@@ -28,18 +28,21 @@ import anthropic
 # )
 
 
-INSTRUCTION = ('''Given the context (some of which might be irrelevant), a question, its choices, and the ground truth answer, classify the question as either "ok" or "not ok".
+INSTRUCTION = """Given the context (some of which might be irrelevant), a question, its choices, and the ground truth answer, classify the question as either "ok" or "not ok".
 - "ok" means that the question and the choices are understandable, and the ground truth answer is correct.
 - "not ok" means that the ground truth answer is incorrect, or the question and the choices are not well presented.
 
-Classify with 'ok' or 'not ok' WITHOUT PROVIDING ANY REASONING''')
+Classify with 'ok' or 'not ok' WITHOUT PROVIDING ANY REASONING"""
 
 
 def predict_gpt4(client, model_name, prompt, generation_configs):
 
     response = client.chat.completions.create(
         model=model_name,
-        messages=[{"role": "system", "content": INSTRUCTION}, {"role": "user", "content": prompt}],
+        messages=[
+            {"role": "system", "content": INSTRUCTION},
+            {"role": "user", "content": prompt},
+        ],
         **generation_configs
     )
     if response and response.choices:
@@ -49,22 +52,26 @@ def predict_gpt4(client, model_name, prompt, generation_configs):
 
     return prediction
 
+
 def predict_llama(model, tokenizer, prompt, max_new_tokens, device):
     input_ids = tokenizer(prompt, return_tensors="pt").input_ids.to(device)
     attention_mask = torch.ones_like(input_ids).to(device)
     pad_token_id = tokenizer.pad_token_id
 
     output = model.generate(
-        input_ids, 
-        attention_mask=attention_mask, 
+        input_ids,
+        attention_mask=attention_mask,
         pad_token_id=pad_token_id,
-        max_new_tokens=max_new_tokens, 
+        max_new_tokens=max_new_tokens,
         num_return_sequences=1,
-        do_sample = False,
-        temperature = 0.0
+        do_sample=False,
+        temperature=0.0,
     )
-    prediction = tokenizer.decode(output[0, input_ids.shape[1]:], skip_special_tokens=True)
+    prediction = tokenizer.decode(
+        output[0, input_ids.shape[1] :], skip_special_tokens=True
+    )
     return prediction
+
 
 def predict_claude(client, prompt):
     response = client.messages.create(
@@ -72,9 +79,7 @@ def predict_claude(client, prompt):
         max_tokens=200,
         temperature=0.0,
         system=INSTRUCTION,
-        messages=[
-            {"role": "user", "content": prompt}
-        ]
+        messages=[{"role": "user", "content": prompt}],
     )
     prediction = response.content[0].text
     return prediction

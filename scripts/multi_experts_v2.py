@@ -2,13 +2,20 @@ import argparse
 import logging
 import os
 import sys
+
 sys.path.append(os.getcwd())
 from dotenv import load_dotenv
+
 load_dotenv(".env")
 import pandas as pd
 from datasets import load_dataset
 from openai import OpenAI
-from transformers import LlamaForCausalLM, LlamaTokenizerFast, AutoModelForCausalLM, AutoTokenizer
+from transformers import (
+    LlamaForCausalLM,
+    LlamaTokenizerFast,
+    AutoModelForCausalLM,
+    AutoTokenizer,
+)
 import anthropic
 from huggingface_hub import login
 import torch
@@ -25,6 +32,7 @@ HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
 CHOICES_DELIMITER = "\n"
 QUESTION_VERBALISER = "Question: {question}\n{choices}\nAnswer: "
 SYSTEM_PROMPT = "Given a question and its choices, determine the most correct answer (A, B, C, or D). ONLY RESPOND WITH ONE LETTER."
+
 
 def verbaliser(question, choices, answer, system_prompt=SYSTEM_PROMPT):
     choices = ast.literal_eval(choices)
@@ -44,6 +52,7 @@ def verbaliser(question, choices, answer, system_prompt=SYSTEM_PROMPT):
         },
     ]
 
+
 def predict_gpt4(client, model_name, prompt, generation_configs):
     response = client.chat.completions.create(
         model=model_name, messages=prompt, **generation_configs
@@ -54,23 +63,26 @@ def predict_gpt4(client, model_name, prompt, generation_configs):
         prediction = ""
     return prediction
 
-def predict_llama(model, tokenizer, prompt, max_new_tokens, device, constrained = True):
+
+def predict_llama(model, tokenizer, prompt, max_new_tokens, device, constrained=True):
     ABCD_INDEX = [int(tokenizer.vocab[c]) for c in "ABCD"]
 
     if isinstance(prompt, str):
         raise ValueError("The prompt should be a list of dictionaries, not a string.")
 
     # Use correct chat/IF-template
-    input_ids = tokenizer.apply_chat_template(prompt, return_tensors="pt", add_generation_prompt=True).to(device)
-    #input_ids = tokenizer.encode(prompt, return_tensors="pt").to(device)
+    input_ids = tokenizer.apply_chat_template(
+        prompt, return_tensors="pt", add_generation_prompt=True
+    ).to(device)
+    # input_ids = tokenizer.encode(prompt, return_tensors="pt").to(device)
     attention_mask = torch.ones_like(input_ids).to(device)
     pad_token_id = tokenizer.pad_token_id
 
     output = model.generate(
-        input_ids, 
-        attention_mask=attention_mask, 
+        input_ids,
+        attention_mask=attention_mask,
         pad_token_id=pad_token_id,
-        max_new_tokens=max_new_tokens, 
+        max_new_tokens=max_new_tokens,
         num_return_sequences=1,
         do_sample=False,
         temperature=0.0,
@@ -80,8 +92,11 @@ def predict_llama(model, tokenizer, prompt, max_new_tokens, device, constrained 
     if constrained:
         prediction = output["scores"][0][0][ABCD_INDEX].argmax().cpu().item()
     else:
-        prediction = tokenizer.decode(output["sequences"][0][input_ids.shape[1]:], skip_special_tokens=True)
+        prediction = tokenizer.decode(
+            output["sequences"][0][input_ids.shape[1] :], skip_special_tokens=True
+        )
     return prediction
+
 
 def predict_claude(client, prompt):
     response = client.messages.create(
@@ -89,12 +104,11 @@ def predict_claude(client, prompt):
         max_tokens=200,
         temperature=0.0,
         system=SYSTEM_PROMPT,
-        messages=[
-            {"role": "user", "content": prompt}
-        ]
+        messages=[{"role": "user", "content": prompt}],
     )
     prediction = response.content[0].text
     return prediction
+
 
 def main(args):
     dataset = load_dataset("edinburgh-dawg/mini-mmlu-fixed", args.config, split="test")
@@ -144,12 +158,14 @@ def main(args):
             openai_client, gpt4_model_name, verbalised_text, gpt4_generation_configs
         )
         prediction_llama = predict_llama(
-            llama_model, llama_tokenizer, verbalised_text, llama_max_new_tokens, device
-            #llama_model, llama_tokenizer, verbalised_text[1]["content"], llama_max_new_tokens, device
+            llama_model,
+            llama_tokenizer,
+            verbalised_text,
+            llama_max_new_tokens,
+            device,
+            # llama_model, llama_tokenizer, verbalised_text[1]["content"], llama_max_new_tokens, device
         )
-        prediction_claude = predict_claude(
-            claude_client, verbalised_text[1]["content"]
-        )
+        prediction_claude = predict_claude(claude_client, verbalised_text[1]["content"])
 
         pred_df.loc[i] = [
             dataset[i]["question"],
@@ -161,19 +177,28 @@ def main(args):
         ]
 
     def get_final_answer(row):
-        unique_predictions = row[["prediction_gpt4", "prediction_llama", "prediction_claude"]].nunique()
+        unique_predictions = row[
+            ["prediction_gpt4", "prediction_llama", "prediction_claude"]
+        ].nunique()
         if unique_predictions == 3:
             return "3 different Answers"
         else:
-            return row[["prediction_gpt4", "prediction_llama", "prediction_claude"]].mode()[0]
+            return row[
+                ["prediction_gpt4", "prediction_llama", "prediction_claude"]
+            ].mode()[0]
 
     pred_df["final_answer"] = pred_df.apply(get_final_answer, axis=1)
 
     pred_df.to_csv(f"mmlu_multi_experts_{args.config}.csv", index=False)
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Evaluate models on Mini-MMLU dataset")
-    parser.add_argument("--config", type=str, required=True,
-                        help="Configuration of the mini-mmlu dataset to use")
+    parser.add_argument(
+        "--config",
+        type=str,
+        required=True,
+        help="Configuration of the mini-mmlu dataset to use",
+    )
     args = parser.parse_args()
     main(args)
