@@ -1,0 +1,78 @@
+llama  msmarco-v1-passage
+
+
+0.856 / 0.912  
+
+llama _simple_prompt msmarco-v1-passage
+
+
+0.827 / 0.89  
+
+llama  enwiki-paragraphs
+
+
+0.856 / 0.91  
+
+llama _simple_prompt enwiki-paragraphs
+
+
+0.827 / 0.889  
+
+
+0.798 / 0.875  
+
+gpt-4-turbo _cot msmarco-v1-passage
+
+
+0.778 / 0.855  
+
+gpt-4-turbo _simple_prompt msmarco-v1-passage
+
+
+0.58 / 0.691  
+
+gpt-4-turbo  enwiki-paragraphs
+
+
+0.804 / 0.877  
+
+gpt-4-turbo _cot enwiki-paragraphs
+
+
+0.788 / 0.862  
+
+gpt-4-turbo _simple_prompt enwiki-paragraphs
+
+
+0.589 / 0.7  
+
+gpt4  msmarco-v1-passage
+
+
+0.803 / 0.878  
+
+gpt4 _cot msmarco-v1-passage
+
+
+0.828 / 0.887  
+
+gpt4 _simple_prompt msmarco-v1-passage
+
+
+0.825 / 0.887  
+
+gpt4  enwiki-paragraphs
+
+
+0.814 / 0.882  
+
+gpt4 _cot enwiki-paragraphs
+
+
+0.814 / 0.875  
+
+gpt4 _simple_prompt enwiki-paragraphs
+
+
+0.806 / 0.871  
+
