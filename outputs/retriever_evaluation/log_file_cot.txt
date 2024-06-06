@@ -122,3 +122,43 @@ Exact Match: 0.8700
 Model Type: gpt4
 Config: virology
 Exact Match: 0.7100
+Model Type: llama
+Config: college_chemistry
+Exact Match: 0.7500
+Model Type: llama
+Config: college_mathematics
+Exact Match: 0.9900
+Model Type: llama
+Config: econometrics
+Exact Match: 0.9600
+Model Type: llama
+Config: formal_logic
+Exact Match: 0.8700
+Model Type: llama
+Config: global_facts
+Exact Match: 0.8200
+Model Type: llama
+Config: high_school_physics
+Exact Match: 0.9800
+Model Type: llama
+Config: machine_learning
+Exact Match: 0.8900
+Model Type: llama
+Config: professional_law
+Exact Match: 0.8200
+Model Type: llama
+Config: public_relations
+Exact Match: 0.9100
+Model Type: llama
+Config: virology
+Exact Match: 0.6000
+Model Type: claude
+Config: college_chemistry
+Model Type: claude
+Config: college_chemistry
+Exact Match: 0.1700
+Model Type: claude
+Config: college_mathematics
+Exact Match: 0.0800
+Model Type: claude
+Config: college_mathematics

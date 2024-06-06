@@ -52,22 +52,20 @@ if __name__ == "__main__":
 
     base_name = "binary_mini_mmlu_groundtruth_correctness_zeroshot"
 
-    #models = ["llama","gpt-4-turbo","gpt4"]
-    models = ["claude"]
+    models = ["llama","gpt-4-turbo","gpt4"]
 
     dataset = ['college_chemistry', 'college_mathematics', 'econometrics', 'formal_logic', 'global_facts', \
     'high_school_physics', 'machine_learning', 'professional_law', 'public_relations', 'virology']
     
-    #methods = ["","_cot","_simple_prompt"]
-    methods = ["_simple_prompt"]
+    methods = ["","_cot","_simple_prompt"]
     index = ["msmarco-v1-passage","enwiki-paragraphs"]
 
     with open("./results.txt","w") as f:
         for m in models:
             for i in index:
                 for met in methods:
-                    # if m =="llama" and (met =="_cot"):
-                    #     continue
+                    if m =="llama" and (met =="_cot"):
+                        continue
                     
                     print(m,met,i,file=f)
                     em_av = 0
@@ -77,7 +75,7 @@ if __name__ == "__main__":
                         df = pd.read_csv(os.path.join("../../outputs","retriever_evaluation",base_name+met+"_"+m+"_"+d+"_"+i+".csv"))
                         res = compute_metrics_binary(df)
                         em_av+=res["exact_match"]
-                        f1_av+=round(res["f1_score"],4)
+                        f1_av+=round(res["f1_score"],2)
 
                         #print(str(res["exact_match"])+"/"+str(round(res["f1_score"],2)),file=f)
                         print(d,",",res["TP"],",",res["TN"],",",	res["FN"],",",	res["FP"],",",
