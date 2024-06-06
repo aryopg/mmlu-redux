@@ -156,3 +156,9 @@ Model Type: claude
 Config: college_chemistry
 Model Type: claude
 Config: college_chemistry
+Exact Match: 0.1700
+Model Type: claude
+Config: college_mathematics
+Exact Match: 0.0800
+Model Type: claude
+Config: college_mathematics

@@ -52,12 +52,14 @@ if __name__ == "__main__":
 
     base_name = "binary_mini_mmlu_groundtruth_correctness_zeroshot"
 
-    models = ["llama","gpt-4-turbo","gpt4"]
+    #models = ["llama","gpt-4-turbo","gpt4"]
+    models = ["claude"]
 
     dataset = ['college_chemistry', 'college_mathematics', 'econometrics', 'formal_logic', 'global_facts', \
     'high_school_physics', 'machine_learning', 'professional_law', 'public_relations', 'virology']
     
-    methods = ["","_cot","_simple_prompt"]
+    #methods = ["","_cot","_simple_prompt"]
+    methods = ["_simple_prompt"]
     index = ["msmarco-v1-passage","enwiki-paragraphs"]
 
     with open("./results.txt","w") as f:
