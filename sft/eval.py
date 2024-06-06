@@ -13,7 +13,8 @@ from utils import NestedKeyDataset
 def load_model():
     lora_model_id = "lora_lr/meta-llama/Meta-Llama-3-8B-Instruct/unaligned/"
     lora_model_id = "lora_full/meta-llama/Meta-Llama-3-8B-Instruct/unaligned/"
-    lora_model_id = "lora_cast_prob_test_uniform_train/meta-llama/Meta-Llama-3-8B-Instruct/unaligned/"
+    lora_model_id = "edinburgh-dawg/mmlu-error-detection-3classes-balanced-step4096-llama3"
+    lora_model_id = "lora_binary_uniform_2048//meta-llama/Meta-Llama-3-8B-Instruct/unaligned/"
 
     print(lora_model_id)
 
@@ -131,10 +132,34 @@ def test2():
 
 
 def test1():
+    ds_id = "edinburgh-dawg/mmlu-redux"
     ds_id = "edinburgh-dawg/mini-mmlu"
-    # ds_id = "edinburgh-dawg/labelchaos"
+    ds_id = "edinburgh-dawg/labelchaos"
     # DEFAULT_INSTRUCTION = "Analyze the following multiple-choice question and the corresponding answer carefully, and tell me which category it falls in:\n\n1. bad options clarity\n2. bad questions clarity\n3. clean\n4. multiple correct answers\n5. no correct answer\n6. wrong groundtruth"
     DEFAULT_INSTRUCTION = "Analyze the following multiple-choice question and the corresponding answer carefully, and tell me which category it falls in:\n\n1. bad presentation\n2. clean\n3. wrong groundtruth"
+    DEFAULT_INSTRUCTION = (
+        "# Task:\n"
+        "Given a triple consisting of a multiple choice question, its choices, and the corresponding ground truth answer, your task is to classify the triple into 'ok' or 'not ok'.\n\n"
+        "# Instructions:\n"
+        "1. Question Presentation: Is the question well-presented? Assess clarity, grammar, and sufficiency of information.\n"
+        "1.1 If Yes, assess the presentation of the MC options.\n"
+        "1.2 If No, classify the issue as 'not ok'.\n"
+        "2. MC Options Presentation: Are the MC options well-presented? Check if the options are clear, distinct, and relevant to the question.\n"
+        "2.1 If Yes, determine if there is one potentially correct answer.\n"
+        "2.2 If No, classify the issue as 'not ok'.\n"
+        "3. Answer Evaluation: Is there one, more than one, or no potentially correct answer in the options list?\n"
+        "3.1 If one, continue to Ground Truth Answer Evaluation.\n"
+        "3.2 If more than one, classify the issue as 'not ok'.\n"
+        "3.3 If no correct answer, classify the issue as 'not ok'.\n"
+        "4. Ground Truth Answer Evaluation: Is the ground truth answer correct?\n"
+        "4.1. If Yes, classify as ok.\n"
+        "4.2. If No, classify as 'not ok'.\n"
+        "Provide your assessment in JSON format with keys 'Question Presentation', 'MC Options Presentation', 'Answer Evaluation', 'Ground Truth Answer Evaluation', 'Classification'. "
+        "The 'classification' is either ok, or not ok. \n\n"
+        "FOLLOW THE EXACT EXAMPLE ANSWER FORMAT WITHOUT PROVIDING EXPLANATION"
+        "# Example Answer:\n"
+        '{"Question Presentation": "ok", "MC Options Presentation": "ok", "Answer Evaluation": "ok", "Ground Truth Answer Evaluation": "ok", "Classification": "ok"}'
+    )
 
     def create_conversation(example):
         messages = [
@@ -157,6 +182,8 @@ def test1():
             answer=f"{chr(65+answer)}. {choices[answer]}",
         )
 
+    #subset_lst = "anatomy astronomy business_ethics clinical_knowledge college_chemistry college_computer_science college_mathematics college_medicine college_physics conceptual_physics econometrics electrical_engineering formal_logic global_facts high_school_chemistry high_school_geography high_school_macroeconomics high_school_mathematics high_school_physics high_school_statistics high_school_us_history human_aging logical_fallacies machine_learning miscellaneous philosophy professional_accounting professional_law public_relations virology".split()
+
     subset_lst = [
         "college_chemistry",
         "college_mathematics",
@@ -169,7 +196,7 @@ def test1():
         "public_relations",
         "virology",
     ]
-    # subset_lst = ["small"]
+    subset_lst = ["small"]
     subset_id_to_ds = {k: load_dataset(ds_id, k) for k in subset_lst}
 
     for subset_id, ds in subset_id_to_ds.items():
@@ -181,8 +208,8 @@ def test1():
                     entry["question"], entry["choices"], entry["answer"]
                 )
                 input_lst += [input_str]
-                output_lst += [(entry["error_type"].replace("_", " "))]
-                # output_lst += [(entry['corruptions'].replace("_", " ") if entry['corruptions'] else "clean")]
+                #output_lst += [(entry["error_type"].replace("_", " "))]
+                output_lst += [(entry['corruptions'].replace("_", " ") if entry['corruptions'] else "clean")]
 
             ds[split_name] = ds[split_name].add_column("input", input_lst)
             ds[split_name] = ds[split_name].add_column("output", output_lst)

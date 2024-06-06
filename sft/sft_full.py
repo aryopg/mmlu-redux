@@ -193,8 +193,31 @@ def main(argv):
     ]
     subset_id_to_ds = {k: load_dataset(ds_id, k) for k in subset_lst}
 
-    # DEFAULT_INSTRUCTION = "Analyze the following multiple-choice question and the corresponding answer carefully, and tell me which category it falls in:\n\n1. bad options clarity\n2. bad questions clarity\n3. clean\n4. multiple correct answers\n5. no correct answer\n6. wrong groundtruth"
-    DEFAULT_INSTRUCTION = "Analyze the following multiple-choice question and the corresponding answer carefully, and tell me which category it falls in:\n\n1. bad presentation\n2. clean\n3. wrong groundtruth"
+    DEFAULT_INSTRUCTION = "Analyze the following multiple-choice question and the corresponding answer carefully, and tell me which category it falls in:\n\n1. bad options clarity\n2. bad questions clarity\n3. clean\n4. multiple correct answers\n5. no correct answer\n6. wrong groundtruth"
+    #DEFAULT_INSTRUCTION = "Analyze the following multiple-choice question and the corresponding answer carefully, and tell me which category it falls in:\n\n1. bad presentation\n2. clean\n3. wrong groundtruth"
+    DEFAULT_INSTRUCTION = (
+        "# Task:\n"
+        "Given a triple consisting of a multiple choice question, its choices, and the corresponding ground truth answer, your task is to classify the triple into 'ok' or 'not ok'.\n\n"
+        "# Instructions:\n"
+        "1. Question Presentation: Is the question well-presented? Assess clarity, grammar, and sufficiency of information.\n"
+        "1.1 If Yes, assess the presentation of the MC options.\n"
+        "1.2 If No, classify the issue as 'not ok'.\n"
+        "2. MC Options Presentation: Are the MC options well-presented? Check if the options are clear, distinct, and relevant to the question.\n"
+        "2.1 If Yes, determine if there is one potentially correct answer.\n"
+        "2.2 If No, classify the issue as 'not ok'.\n"
+        "3. Answer Evaluation: Is there one, more than one, or no potentially correct answer in the options list?\n"
+        "3.1 If one, continue to Ground Truth Answer Evaluation.\n"
+        "3.2 If more than one, classify the issue as 'not ok'.\n"
+        "3.3 If no correct answer, classify the issue as 'not ok'.\n"
+        "4. Ground Truth Answer Evaluation: Is the ground truth answer correct?\n"
+        "4.1. If Yes, classify as ok.\n"
+        "4.2. If No, classify as 'not ok'.\n"
+        "Provide your assessment in JSON format with keys 'Question Presentation', 'MC Options Presentation', 'Answer Evaluation', 'Ground Truth Answer Evaluation', 'Classification'. "
+        "The 'classification' is either ok, or not ok. \n\n"
+        "FOLLOW THE EXACT EXAMPLE ANSWER FORMAT WITHOUT PROVIDING EXPLANATION"
+        "# Example Answer:\n"
+        '{"Question Presentation": "ok", "MC Options Presentation": "ok", "Answer Evaluation": "ok", "Ground Truth Answer Evaluation": "ok", "Classification": "ok"}'
+    )
 
     def create_conversation(example):
         messages = [
@@ -226,17 +249,24 @@ def main(argv):
         "wrong_groundtruth",
     ]
     subset_id_to_ds = {k: load_dataset(ds_id, k) for k in subset_lst}
+
     remapping = {
-        "clean": "clean",
-        "bad_questions_clarity": "bad presentation",
-        "bad_options_clarity": "bad presentation",
-        "no_correct_answer": "wrong groundtruth",
-        "multiple_correct_answers": "wrong groundtruth",
-        "wrong_groundtruth": "wrong groundtruth",
+        #"clean": "clean",
+        #"bad_questions_clarity": "bad presentation",
+        #"bad_options_clarity": "bad presentation",
+        #"no_correct_answer": "wrong groundtruth",
+        #"multiple_correct_answers": "wrong groundtruth",
+        #"wrong_groundtruth": "wrong groundtruth",
+        "clean": "ok",
+        "bad_questions_clarity": "not ok",
+        "bad_options_clarity": "not ok",
+        "no_correct_answer": "not ok",
+        "multiple_correct_answers": "not ok",
+        "wrong_groundtruth": "not ok",
     }
 
-    # probs = [0.1, 0.1, 0.5, 0.1, 0.1, 0.1]
-    probs = [0.009, 0.031, 0.848, 0.029, 0.013, 0.07]
+    probs = [0.1, 0.1, 0.5, 0.1, 0.1, 0.1]
+    #probs = [0.009, 0.031, 0.848, 0.029, 0.013, 0.07]
 
     for subset_id, ds in subset_id_to_ds.items():
         for split_name in ["train", "validation", "test"]:
@@ -247,7 +277,7 @@ def main(argv):
                     entry["question"], entry["choices"], entry["answer"]
                 )
                 input_lst += [input_str]
-                # output_lst += [(subset_id.replace("_", " "))]
+                #output_lst += [(subset_id.replace("_", " "))]
                 output_lst += [remapping[subset_id]]
 
             ds[split_name] = ds[split_name].add_column("input", input_lst)
