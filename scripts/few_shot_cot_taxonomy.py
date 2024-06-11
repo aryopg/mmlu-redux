@@ -68,8 +68,8 @@ FEW_SHOT_EXAMPLES = [
             "MC Options Presentation": "ok",
             "Answer Evaluation": "ok",
             "Ground Truth Answer Evaluation": "ok",
-            "Classification": "ok",
-            "Answer": "D. Pacific Ocean",
+            "Classification": "not ok",
+            "Answer": "",
         },
     },
     {
@@ -223,7 +223,7 @@ def create_messages(
 
 
 def main(args):
-    log_file = "./outputs/fewshot_taxonomy_binary_evaluation/log_file.txt"
+    log_file = "./outputs/fewshot_taxonomy_binary_evaluation/log_file_binary.txt"
 
     os.makedirs(os.path.dirname(log_file), exist_ok=True)
 
@@ -249,7 +249,7 @@ def main(args):
             "presence_penalty": 0,
             "max_tokens": 200,
         }
-    if args.model_type == "gpt4turbo":
+    elif args.model_type == "gpt4turbo":
         openai_client = OpenAI(
             api_key=os.getenv("OPENAI_API_KEY", OPENAI_API_KEY),
         )
@@ -384,7 +384,7 @@ def main(args):
 
     pred_df.to_csv(
         f"./outputs/fewshot_taxonomy_binary_evaluation/"
-        f"binary_mini_mmlu_groundtruth_correctness_{args.model_type}_{args.config}.csv",
+        f"updated_binary_mini_mmlu_groundtruth_correctness_{args.model_type}_{args.config}.csv",
         index=False,
     )
 
