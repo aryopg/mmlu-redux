@@ -54,21 +54,6 @@ def predict_llama(model, tokenizer, prompt, max_new_tokens, device):
     )
     return prediction
 
-# def predict_claude(client, text):
-#     system_message = INSTRUCTION
-#     formatted_messages = [{"role": "user", "content": text}]
-
-#     response = client.messages.create(
-#         model="claude-3-opus-20240229",
-#         max_tokens=700,
-#         temperature=0.0,
-#         system=system_message,
-#         messages=formatted_messages
-#     )
-
-#     prediction = response.content[0].text
-#     return prediction
-
 def predict_claude(client, messages):
     system_message = None
     formatted_messages = []
