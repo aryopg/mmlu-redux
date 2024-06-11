@@ -6,26 +6,11 @@ from openai import OpenAI
 
 INSTRUCTION = (
     "# Task:\n"
-    "Given a triple consisting of a multiple choice question, its choices, and the corresponding ground truth answer, your task is to classify the triple into 'ok' or 'not ok'.\n\n"
-    "# Instructions:\n"
-    "1. Question Presentation: Is the question well-presented? Assess clarity, grammar, and sufficiency of information.\n"
-    "1.1 If Yes, assess the presentation of the MC options.\n"
-    "1.2 If No, classify the issue as 'not ok'.\n"
-    "2. MC Options Presentation: Are the MC options well-presented? Check if the options are clear, distinct, and relevant to the question.\n"
-    "2.1 If Yes, determine if there is one potentially correct answer.\n"
-    "2.2 If No, classify the issue as 'not ok'.\n"
-    "3. Answer Evaluation: Is there one, more than one, or no potentially correct answer in the options list?\n"
-    "3.1 If one, continue to Ground Truth Answer Evaluation.\n"
-    "3.2 If more than one, classify the issue as 'not ok'.\n"
-    "3.3 If no correct answer, classify the issue as 'not ok'.\n"
-    "4. Ground Truth Answer Evaluation: Is the ground truth answer correct?\n"
-    "4.1. If Yes, classify as ok.\n"
-    "4.2. If No, classify as 'not ok'.\n"
-    "Provide your assessment in JSON format with keys 'Question Presentation', 'MC Options Presentation', 'Answer Evaluation', 'Ground Truth Answer Evaluation', 'Classification'. "
-    "The 'classification' is either ok, or not ok. \n\n"
-    "FOLLOW THE EXACT EXAMPLE ANSWER FORMAT WITHOUT PROVIDING EXPLANATION"
-    "# Example Answer:\n"
-    '{"Question Presentation": "ok", "MC Options Presentation": "ok", "Answer Evaluation": "ok", "Ground Truth Answer Evaluation": "ok", "Classification": "ok"}'
+    "Given a question, its choices, and the ground truth answer, classify the question as either 'oK' or 'not ok'.\n"
+
+    "- 'ok' means that the question and the choices are understandable, and the ground truth answer is correct.\n"
+    "- 'not ok' means that the ground truth answer is incorrect, or the question and the choices are not well presented.\n"
+    "Classify with 'ok' or 'not ok' WITHOUT PROVIDING ANY REASONING"
 )
 
 
@@ -69,6 +54,20 @@ def predict_llama(model, tokenizer, prompt, max_new_tokens, device):
     )
     return prediction
 
+# def predict_claude(client, text):
+#     system_message = INSTRUCTION
+#     formatted_messages = [{"role": "user", "content": text}]
+
+#     response = client.messages.create(
+#         model="claude-3-opus-20240229",
+#         max_tokens=700,
+#         temperature=0.0,
+#         system=system_message,
+#         messages=formatted_messages
+#     )
+
+#     prediction = response.content[0].text
+#     return prediction
 
 def predict_claude(client, messages):
     system_message = None
@@ -78,16 +77,14 @@ def predict_claude(client, messages):
         if message["role"] == "system":
             system_message = message["content"]
         else:
-            formatted_messages.append(
-                {"role": message["role"], "content": message["content"]}
-            )
+            formatted_messages.append({"role": message["role"], "content": message["content"]})
 
     response = client.messages.create(
         model="claude-3-opus-20240229",
         max_tokens=700,
         temperature=0.0,
         system=system_message,
-        messages=formatted_messages,
+        messages=formatted_messages
     )
 
     prediction = response.content[0].text
