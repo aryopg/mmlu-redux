@@ -9,7 +9,6 @@ import pandas as pd
 from tqdm import tqdm
 from src.taxonomy.data_utils import verbaliser
 from sklearn.metrics import confusion_matrix, precision_score, recall_score, f1_score
-from src.taxonomy.model_utils import INSTRUCTION
 
 def compute_metrics_binary(pred_df):
     pred_df["predicted_error_type_binary"] = pred_df["predicted_error_type"].apply(lambda x: 1 if x == 'ok' else 0)
