@@ -1,5 +1,19 @@
 # ARE WE DONE WITH MMLU?
 
+## Error Detection Evaluation
+
+### Run
+
+```bash
+...
+```
+
+## LabelChaos
+
+### Introduction
+
+...
+
 ### Create an environment file
 For interacting with the HF Hub and/or having access to OpenAI models, create an environment file containing the following keys
 ```bash
@@ -25,20 +39,3 @@ where
 - [DATASET_PATH] is the HF path of the dataset you want to corrupt. By default, it is 'edinburgh-dawg/labelchaos'
 - [DATASET_NAME] is the subset of the dataset you want to corrupt. By default, it is 'clean'
 - [A_PATH] a local directory where the output files will be stored. By default, it is 'project_dir/outputs/perturbed'
-
-
-### Run
-
-```bash
-# Multi-expert strategy
-python scripts/multi_experts.py
-
-# Basic answerability prompt strategy
-python scripts/answerability_base.py
-
-# Taxonomy-based answerability prompt strategy
-python scripts/answerability_taxonomy.py
-python scripts/postprocess_taxonomy_answers.py
-```
-
-Things are very much manual and hacky, so you may need to adjust the values within the script instead of argument-based for now.
