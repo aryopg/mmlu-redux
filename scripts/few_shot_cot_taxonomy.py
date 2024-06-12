@@ -200,23 +200,6 @@ FEW_SHOT_EXAMPLES = [
 ]
 
 
-def create_messages(
-    system_message: str,
-    user_message: str,
-    few_shot_examples: list[dict[str, str]] = None,
-    history: list[dict[str, str]] = None,
-) -> list[dict[str, str]]:
-    messages = [{"role": "system", "content": system_message}]
-    if len(few_shot_examples) > 0:
-        for example in few_shot_examples:
-            messages.append({"role": "user", "content": example["input"]})
-            messages.append({"role": "assistant", "content": example["output"]})
-    if history and len(history) > 0:
-        messages.extend(history)
-    messages.append({"role": "user", "content": user_message})
-    return messages
-
-
 def main(args):
     log_file = "./outputs/fewshot_taxonomy_binary_evaluation/log_file_binary.txt"
 

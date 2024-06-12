@@ -3,16 +3,13 @@
 import re
 import hashlib
 
-import json
 import torch
 from torch.utils.data import Dataset
 
-from huggingface_hub import hf_hub_download
-from huggingface_hub.utils import EntryNotFoundError, RepositoryNotFoundError
 import transformers
 from transformers import AutoTokenizer
 
-from typing import Tuple, Dict
+from typing import Dict
 
 
 class NestedKeyDataset(Dataset):
@@ -78,28 +75,6 @@ def checksum(text: str) -> str:
     return hashlib.sha512(text.encode()).hexdigest()
 
 
-def extract_templates(tokenizer) -> Tuple[str, str, str]:
-    system_prompt, user_prompt, assistant_prompt = map(
-        checksum, [f"{e} prompt" for e in ["system", "user", "assistant"]]
-    )
-    messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": user_prompt},
-        {"role": "assistant", "content": assistant_prompt},
-    ]
-    text = tokenizer.apply_chat_template(messages, tokenize=False)
-
-    def extract_template(prompt: str) -> str:
-        expression = rf"\n(.*?)\s*{prompt}"
-        match = re.search(expression, text)
-        assert match is not None
-        res = match.group(1)
-        return f"{res}"
-
-    res = map(extract_template, [system_prompt, user_prompt, assistant_prompt])
-    return tuple(res)
-
-
 def create_model_path(args):
     # Sanitize the model ID to replace '/' with '_' to avoid directory path issues
     sanitized_model_id = re.sub(r"[/\\]", "_", args.model.split("/")[-1])
@@ -124,18 +99,3 @@ def create_model_path(args):
     path = path.replace("=", "_")
 
     return path
-
-
-def get_best_results(repo_id: str) -> Dict[str, float]:
-    best_results = None
-    try:
-        best_results_path = hf_hub_download(
-            repo_id=repo_id, filename="results.json", repo_type="model"
-        )
-
-        if best_results_path is not None:
-            with open(best_results_path, "r") as f:
-                best_results = json.load(f)
-    except (EntryNotFoundError, RepositoryNotFoundError):
-        pass
-    return best_results

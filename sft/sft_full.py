@@ -332,31 +332,6 @@ def main(argv):
         desc="Generating Yes conversations",
     )
 
-    def create_conversation_toxic(example):
-        if "gemma" in args.model:
-            messages = [
-                {
-                    "role": "user",
-                    "content": DEFAULT_INSTRUCTION_SYS + "\n" + example["prompt"],
-                },
-                {"role": "model", "content": example["response"]},
-            ]
-        elif "Llama-3" in args.model or "Llama-2" in args.model:
-            messages = [
-                {"role": "system", "content": DEFAULT_INSTRUCTION_SYS},
-                {"role": "user", "content": example["prompt"]},
-                {"role": "assistant", "content": example["response"]},
-            ]
-        elif "Mistral" in args.model:
-            messages = [
-                {
-                    "role": "user",
-                    "content": DEFAULT_INSTRUCTION_SYS + "\n" + example["prompt"],
-                },
-                {"role": "assistant", "content": example["response"]},
-            ]
-        return {"messages": messages}
-
     collator = None
     if args.collator in {"completion"}:
         # _, user_template, assistant_template = extract_templates(tokenizer)
