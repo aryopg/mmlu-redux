@@ -70,7 +70,7 @@ Make sure to modify the script if needed to specify the desired subdatasets and 
 
 ### Introduction
 
-...
+To validate our fine-tuning strategy for error detection, we developed LabelChaos, a dataset designed to mirror the error distribution of the original MMLU. This dataset serves as a benchmark for finetuning models, which are subsequently evaluated on MMLU-Redux.
 
 ### Create an environment file
 For interacting with the HF Hub and/or having access to OpenAI models, create an environment file containing the following keys
