@@ -2,16 +2,15 @@
 This repository contains the evaluation code for the paper "[**Are We Done With MMLU?**](https://arxiv.org/pdf/2406.04127)"
 
 ## MMLU-Redux
-MMLU-Redux is an enhanced version of the MMLU (Measuring Massive Multitask Language Understanding) dataset, carefully annotated to provide a more accurate and reliable benchmark for evaluating the performance of language models. By carefully annotating and removing erroneous data from the original MMLU dataset, MMLU-Redux offers a refined and challenging testbed for assessing the knowledge and reasoning capabilities of state-of-the-art language models.
+MMLU-Redux is a carefully annotated version of the [MMLU (Massive Multitask Language Understanding) dataset](https://arxiv.org/abs/2009.03300) to provide a more accurate and reliable benchmark for evaluating the performance of language models.
 
 ## Dataset Overview
-MMLU-Redux consists of 30 subdatasets, each containing 100 carefully selected and annotated examples. The annotation process involved identifying and removing data points that were classified as errors in the original MMLU dataset. This refinement process ensures that MMLU-Redux provides a more accurate representation of the language models' true capabilities.
-
+MMLU-Redux consists of 30 MMLU subjects, each containing 100 randomly sampled questions.
 Please refer to [**🤗 MMLU-Redux Dataset**](https://huggingface.co/datasets/mmlu-redux) for more details.
 
 ## Error Detection Evaluation
 
-This evaluation provides a comprehensive set of scripts for assessing error detections on the MMLU-Redux dataset. The methods include Zero-Shot, Zero-Shot with Chain of Thought (CoT), Few-Shot, and Few-Shot with CoT techniques.
+This evaluation provides a set of scripts for assessing the error detection capability of various prompting methods on the MMLU-Redux dataset. The methods include Zero-Shot, Zero-Shot with Chain of Thought (CoT), Few-Shot, and Few-Shot with CoT techniques.
 
 ### Installation
 1. Clone the repository:
