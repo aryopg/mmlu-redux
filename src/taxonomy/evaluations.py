@@ -1,4 +1,5 @@
 import json
+
 from src.taxonomy.data_utils import verbaliser
 
 
@@ -78,18 +79,3 @@ def few_shot_prompt(examples, instruction, test_question, test_choices, test_ans
 
     return messages
 
-
-def few_shot_prompt_llama(examples, test_question, test_choices, test_answer):
-    messages = INSTRUCTION + "\n\n"
-    for example in examples:
-        example_prompt = verbaliser(
-            example["question"], example["choices"], example["answer"]
-        )
-        messages += f"Question: {example_prompt}\n"
-        messages += f"Response: {json.dumps(example['response'])}\n\n"
-
-    test_prompt = verbaliser(test_question, test_choices, test_answer)
-    messages += f"Question: {test_prompt}\n"
-    messages += "Response:"
-
-    return messages
