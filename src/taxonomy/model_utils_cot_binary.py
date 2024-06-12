@@ -49,10 +49,10 @@ def predict_gpt4(client, model_name, prompt, generation_configs, messages=None):
 
 
 def predict_llama(model, tokenizer, prompt, max_new_tokens, device):
-    input_ids = tokenizer(prompt, return_tensors="pt").input_ids.to(device)
+    input_text = f"{system_prompt}\n\n{prompt}"
+    input_ids = tokenizer(input_text, return_tensors="pt").input_ids.to(device)
     attention_mask = torch.ones_like(input_ids).to(device)
     pad_token_id = tokenizer.pad_token_id
-
     output = model.generate(
         input_ids,
         attention_mask=attention_mask,
@@ -60,11 +60,9 @@ def predict_llama(model, tokenizer, prompt, max_new_tokens, device):
         max_new_tokens=max_new_tokens,
         num_return_sequences=1,
         do_sample=False,
-        temperature=0.0,
+        temperature=0.0
     )
-    prediction = tokenizer.decode(
-        output[0, input_ids.shape[1] :], skip_special_tokens=True
-    )
+    prediction = tokenizer.decode(output[0, input_ids.shape[1]:], skip_special_tokens=True)
     return prediction
 
 
