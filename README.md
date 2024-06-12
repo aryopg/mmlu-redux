@@ -6,20 +6,26 @@ Please refer to [the Hugging Face page of MMLU-Redux](https://huggingface.co/dat
 
 ## Error Detection Evaluation
 
-This evaluation includes scripts for assessing different error detection methods on the MMLU-Redux dataset. The techniques include Zero-Shot, Zero-Shot with Chain of Thought (CoT), Few-Shot, and Few-Shot with CoT.
+This evaluation provides a comprehensive set of scripts for assessing error detections on the MMLU-Redux dataset. The methods include Zero-Shot, Zero-Shot with Chain of Thought (CoT), Few-Shot, and Few-Shot with CoT techniques.
 
-### Run
-
-#### Installation
+### Installation
 1. Clone the repository:
 ```bash
 git clone https://github.com/aryopg/mmlu-redux.git
 ```
 
-2. Install the required dependencies:
+2. Navigate to the project directory:
+```bash
+cd mmlu-redux
+```
+
+3. Install the required dependencies:
 ```bash
 pip install -r requirements.txt
 ```
+
+### Usage
+
 #### Zero-Shot Evaluation
 To evaluate the Zero-Shot technique on the MMLU-Redux dataset, run the following command:
 
@@ -34,7 +40,7 @@ Python scripts/zero_shot_cot_taxonomy.py
 ```
 
 #### Few-Shot Evaluation
-To evaluate the Few-Shot technique on the MMLU dataset, run the following command:
+To evaluate the Few-Shot technique on the MMLU-Redux dataset, run the following command:
 
 ```bash
 scripts/few_shot_taxonomy.py
@@ -47,13 +53,13 @@ scripts/few_shot_cot_taxonomy.py
 ```
 
 #### Evaluating Multiple Datasets
-Alternatively, We provide a bash script to evaluate multiple MMLU subdatasets using the Chain of Thought (CoT) technique. To run the script, use the following command:
+We also provide a convenient bash script to evaluate multiple MMLU-Redux subdatasets using the Chain of Thought (CoT) technique. To run the script, use the following command:
 
 ```bash
 scripts/bash_scripts/mmlu_subdatasets_cot_taxonomy.sh
 ```
 
-Make sure to modify the script if needed to specify the desired subdatasets model type.
+Make sure to modify the script if needed to specify the desired subdatasets and model type.
 
 
 ## LabelChaos
