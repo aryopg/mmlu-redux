@@ -1,5 +1,5 @@
 # ARE WE DONE WITH MMLU?
-This repository contains the evaluation code for the paper "[**Are We Done With MMLU?"**](https://arxiv.org/pdf/2406.04127)"
+This repository contains the evaluation code for the paper "[**Are We Done With MMLU?**](https://arxiv.org/pdf/2406.04127)"
 
 ## MMLU-Redux
 MMLU-Redux is an enhanced version of the MMLU (Measuring Massive Multitask Language Understanding) dataset, carefully annotated to provide a more accurate and reliable benchmark for evaluating the performance of language models. By carefully annotating and removing erroneous data from the original MMLU dataset, MMLU-Redux offers a refined and challenging testbed for assessing the knowledge and reasoning capabilities of state-of-the-art language models.
