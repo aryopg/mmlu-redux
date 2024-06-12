@@ -1,5 +1,4 @@
 import argparse
-import json
 import os
 import sys
 
@@ -7,7 +6,6 @@ from tqdm import tqdm
 
 sys.path.append(os.path.join(os.getcwd(), "src"))
 
-from pathlib import Path
 
 import anthropic
 import pandas as pd
@@ -19,9 +17,6 @@ from openai import OpenAI
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
-    LlamaForCausalLM,
-    LlamaTokenizerFast,
-    pipeline,
 )
 
 load_dotenv(dotenv_path=".env_example")
@@ -35,7 +30,6 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.taxonomy.data_utils import (
     extract_braced_content,
     normalize_error_type,
-    verbaliser,
 )
 from src.taxonomy.evaluations import compute_metrics_binary, few_shot_prompt
 from src.taxonomy.model_utils_binary import (
@@ -121,7 +115,6 @@ FEW_SHOT_EXAMPLES = [
 ]
 
 
-
 def create_messages(
     system_message: str,
     user_message: str,
@@ -140,7 +133,9 @@ def create_messages(
 
 
 def main(args):
-    if not os.path.exists("./outputs/labelchaos_short_fewshot_taxonomy_binary_evaluation/"):
+    if not os.path.exists(
+        "./outputs/labelchaos_short_fewshot_taxonomy_binary_evaluation/"
+    ):
         os.makedirs("./outputs/labelchaos_short_fewshot_taxonomy_binary_evaluation/")
 
     log_file = f"./outputs/labelchaos_short_fewshot_taxonomy_binary_evaluationnew_log_file_{args.model_type}.txt"
@@ -151,7 +146,9 @@ def main(args):
         f.write(f"Model Type: {args.model_type}\n")
         f.write(f"Config: {args.config}\n")
 
-    dataset = load_dataset("edinburgh-dawg/labelchaos", args.config, split="test", token=HF_READ_TOKEN)
+    dataset = load_dataset(
+        "edinburgh-dawg/labelchaos", args.config, split="test", token=HF_READ_TOKEN
+    )
     # dataset = load_dataset(
     #     "edinburgh-dawg/mini-mmlu", args.config, split="test", token=HF_READ_TOKEN
     # )
@@ -279,13 +276,14 @@ def main(args):
             normalize_error_type(predicted_error_type),
         ]
 
-    pred_df["error_type_ok"] = pred_df["corruptions"].apply(lambda x: "ok" if x == "None" else "notok")
+    pred_df["error_type_ok"] = pred_df["corruptions"].apply(
+        lambda x: "ok" if x == "None" else "notok"
+    )
 
     pred_df["predicted_error_type"] = (
         pred_df["predicted_error_type"].str.strip().str.lower()
     )
     pred_df["error_type_ok"] = pred_df["error_type_ok"].str.strip().str.lower()
-    exact_match = (pred_df["predicted_error_type"] == pred_df["error_type_ok"]).mean()
 
     metrics = compute_metrics_binary(pred_df)
     print(f"Metrics: {metrics}")
@@ -305,7 +303,7 @@ if __name__ == "__main__":
         "--model_type",
         type=str,
         required=True,
-        choices=["gpt4", 'gpt4turbo', "llama", "claude"],
+        choices=["gpt4", "gpt4turbo", "llama", "claude"],
         help="Type of model to use for prediction",
     )
     parser.add_argument(

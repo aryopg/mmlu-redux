@@ -1,9 +1,8 @@
-from datasets import load_dataset, interleave_datasets, concatenate_datasets
+from datasets import load_dataset, concatenate_datasets
 import transformers
 import torch
 from peft import AutoPeftModelForCausalLM
 from transformers import AutoTokenizer
-import sys
 from tqdm import tqdm
 import json
 
@@ -13,8 +12,12 @@ from utils import NestedKeyDataset
 def load_model():
     lora_model_id = "lora_lr/meta-llama/Meta-Llama-3-8B-Instruct/unaligned/"
     lora_model_id = "lora_full/meta-llama/Meta-Llama-3-8B-Instruct/unaligned/"
-    lora_model_id = "edinburgh-dawg/mmlu-error-detection-3classes-balanced-step4096-llama3"
-    lora_model_id = "lora_binary_uniform_2048//meta-llama/Meta-Llama-3-8B-Instruct/unaligned/"
+    lora_model_id = (
+        "edinburgh-dawg/mmlu-error-detection-3classes-balanced-step4096-llama3"
+    )
+    lora_model_id = (
+        "lora_binary_uniform_2048//meta-llama/Meta-Llama-3-8B-Instruct/unaligned/"
+    )
 
     print(lora_model_id)
 
@@ -38,7 +41,7 @@ def load_model():
 
 def test2():
     subjects = "abstract_algebra    college_chemistry         conceptual_physics      high_school_biology                  high_school_macroeconomics  high_school_us_history     logical_fallacies  moral_disputes           professional_law         us_foreign_policy anatomy             college_computer_science  econometrics            high_school_chemistry                high_school_mathematics     high_school_world_history  machine_learning   moral_scenarios          professional_medicine    virology astronomy           college_mathematics       electrical_engineering  high_school_computer_science         high_school_microeconomics  human_aging                management         nutrition                professional_psychology  world_religions business_ethics     college_medicine          elementary_mathematics  high_school_european_history         high_school_physics         human_sexuality            marketing          philosophy               public_relations clinical_knowledge  college_physics           formal_logic            high_school_geography                high_school_psychology      international_law          medical_genetics   prehistory               security_studies college_biology     computer_security         global_facts            high_school_government_and_politics  high_school_statistics      jurisprudence              miscellaneous      professional_accounting  sociology".split()
-    ds_id = f"cais/mmlu"
+    ds_id = "cais/mmlu"
 
     # DEFAULT_INSTRUCTION = "Analyze the following multiple-choice question and the corresponding answer carefully, and tell me which category it falls in:\n\n1. bad options clarity\n2. bad questions clarity\n3. clean\n4. multiple correct answers\n5. no correct answer\n6. wrong groundtruth"
     DEFAULT_INSTRUCTION = "Analyze the following multiple-choice question and the corresponding answer carefully, and tell me which category it falls in:\n\n1. bad presentation\n2. clean\n3. wrong groundtruth"
@@ -182,7 +185,7 @@ def test1():
             answer=f"{chr(65+answer)}. {choices[answer]}",
         )
 
-    #subset_lst = "anatomy astronomy business_ethics clinical_knowledge college_chemistry college_computer_science college_mathematics college_medicine college_physics conceptual_physics econometrics electrical_engineering formal_logic global_facts high_school_chemistry high_school_geography high_school_macroeconomics high_school_mathematics high_school_physics high_school_statistics high_school_us_history human_aging logical_fallacies machine_learning miscellaneous philosophy professional_accounting professional_law public_relations virology".split()
+    # subset_lst = "anatomy astronomy business_ethics clinical_knowledge college_chemistry college_computer_science college_mathematics college_medicine college_physics conceptual_physics econometrics electrical_engineering formal_logic global_facts high_school_chemistry high_school_geography high_school_macroeconomics high_school_mathematics high_school_physics high_school_statistics high_school_us_history human_aging logical_fallacies machine_learning miscellaneous philosophy professional_accounting professional_law public_relations virology".split()
 
     subset_lst = [
         "college_chemistry",
@@ -208,8 +211,14 @@ def test1():
                     entry["question"], entry["choices"], entry["answer"]
                 )
                 input_lst += [input_str]
-                #output_lst += [(entry["error_type"].replace("_", " "))]
-                output_lst += [(entry['corruptions'].replace("_", " ") if entry['corruptions'] else "clean")]
+                # output_lst += [(entry["error_type"].replace("_", " "))]
+                output_lst += [
+                    (
+                        entry["corruptions"].replace("_", " ")
+                        if entry["corruptions"]
+                        else "clean"
+                    )
+                ]
 
             ds[split_name] = ds[split_name].add_column("input", input_lst)
             ds[split_name] = ds[split_name].add_column("output", output_lst)
@@ -435,7 +444,6 @@ def main():
         do_sample=False,
         eos_token_id=terminators,
     ):
-
         print(out)
         break
 

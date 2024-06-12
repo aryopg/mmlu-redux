@@ -3,10 +3,10 @@
 
 import os
 import sys
-import json
 import torch
 import argparse
 import logging
+import re
 
 import wandb
 
@@ -15,7 +15,6 @@ from transformers import (
     AutoModelForCausalLM,
     BitsAndBytesConfig,
     TrainingArguments,
-    EvalPrediction,
 )
 from transformers.utils import is_bitsandbytes_available, is_flash_attn_2_available
 
@@ -24,17 +23,12 @@ from datasets import load_dataset, interleave_datasets, concatenate_datasets
 from trl import SFTTrainer, setup_chat_format, DataCollatorForCompletionOnlyLM
 from peft import LoraConfig
 
-from huggingface_hub import HfApi
 
 from utils import (
     check_bf16_support,
-    extract_templates,
-    create_model_path,
-    get_best_results,
     smart_tokenizer_and_embedding_resize,
 )
 
-from typing import Dict
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 os.environ["WANDB_PROJECT"] = "mmlu-llm_v1"

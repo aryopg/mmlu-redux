@@ -68,7 +68,6 @@ class Corruptor:
             )
 
     def set_llm(self, llm, random_seed):
-
         llm = dict(llm)
         if llm:
             assert isinstance(
@@ -79,7 +78,6 @@ class Corruptor:
             ), "If you want to use an llm you have to define an llm type in the configuration file"
 
             if llm["type"] == "http":
-
                 from huggingface_hub import InferenceClient
 
                 client = InferenceClient(**llm["configs"])
@@ -149,7 +147,6 @@ class Corruptor:
         return None
 
     def corrupt_dataset(self, dataset_path, dataset_name, output_dir, test_flag=False):
-
         test_dir = "./test"
 
         numpy.random.seed(self.random_seed)

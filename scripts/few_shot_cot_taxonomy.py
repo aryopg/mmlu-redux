@@ -7,7 +7,6 @@ from tqdm import tqdm
 
 sys.path.append(os.path.join(os.getcwd(), "src"))
 
-from pathlib import Path
 
 import anthropic
 import pandas as pd
@@ -19,9 +18,6 @@ from openai import OpenAI
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
-    LlamaForCausalLM,
-    LlamaTokenizerFast,
-    pipeline,
 )
 
 load_dotenv(dotenv_path=".env")
@@ -35,7 +31,6 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.taxonomy.data_utils import (
     extract_braced_content,
     normalize_error_type,
-    verbaliser,
 )
 from src.taxonomy.evaluations import compute_metrics_binary, few_shot_prompt
 from src.taxonomy.model_utils_binary import (
@@ -346,15 +341,12 @@ def main(args):
             if model_answer.startswith("{") and model_answer.endswith("}"):
                 prediction_json = json.loads(model_answer)
                 predicted_error_type = prediction_json["Classification"]
-                predicted_answer = prediction_json.get("Answer", "")
             else:
                 model_answer = prediction
                 predicted_error_type = "Invalid Prediction"
-                predicted_answer = ""
         except (json.JSONDecodeError, KeyError, IndexError) as e:
             model_answer = prediction
             predicted_error_type = "Invalid Prediction"
-            predicted_answer = ""
             print(f"Error parsing prediction for instance {i}: {str(e)}")
             print(f"Model answer: {model_answer}")
 
@@ -375,7 +367,6 @@ def main(args):
         pred_df["predicted_error_type"].str.strip().str.lower()
     )
     pred_df["error_type_ok"] = pred_df["error_type_ok"].str.strip().str.lower()
-    exact_match = (pred_df["predicted_error_type"] == pred_df["error_type_ok"]).mean()
 
     metrics = compute_metrics_binary(pred_df)
     print(f"Metrics: {metrics}")

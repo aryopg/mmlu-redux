@@ -1,7 +1,6 @@
 import re
 import string
 
-from datasets import load_dataset
 
 CHOICES_DELIMITER = "\n"
 QUESTION_VERBALISER = "Question: {question}\nChoices:\n{choices}\nGround Truth Answer: {answer}\nYour Response: "

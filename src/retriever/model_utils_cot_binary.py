@@ -1,7 +1,4 @@
-import os
 import torch
-from openai import OpenAI
-import anthropic
 
 INSTRUCTION = (
     "# Task:\n"
@@ -43,7 +40,7 @@ def predict_gpt4(client, model_name, prompt, generation_configs):
             {"role": "system", "content": INSTRUCTION},
             {"role": "user", "content": prompt},
         ],
-        **generation_configs
+        **generation_configs,
     )
     if response and response.choices:
         prediction = response.choices[0].message.content

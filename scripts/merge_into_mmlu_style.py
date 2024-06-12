@@ -1,5 +1,6 @@
 from datasets import load_dataset, concatenate_datasets, DatasetDict
-import sys, os
+import sys
+import os
 
 import numpy as np
 
@@ -61,7 +62,6 @@ def undersample(dataset, n_samples):
 
 
 def main(output_folder):
-
     ###########################################################################################################
     # ARC-Easy, ARC-Challenge, OpenbookQA. These ones have a very similar schema so we process them together.
     ###########################################################################################################
@@ -127,7 +127,6 @@ def main(output_folder):
     )
 
     def fix_truthfulqa(example):
-
         # replace anwer
         example["answer"] = example["answer"].index(1)
 

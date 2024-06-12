@@ -1,12 +1,6 @@
-import argparse
-import html
-import logging
 import math
 import os
-import re
 import sys
-import unicodedata
-from time import sleep
 
 from unidecode import unidecode
 
@@ -21,17 +15,14 @@ import pandas as pd
 from datasets import load_dataset
 from dotenv import load_dotenv
 from fuzzywuzzy import fuzz
-from huggingface_hub import login
 from sklearn.metrics import (
     accuracy_score,
-    average_precision_score,
     confusion_matrix,
     f1_score,
     fbeta_score,
     precision_score,
     recall_score,
 )
-from tqdm import tqdm
 
 load_dotenv(dotenv_path=".env")
 
@@ -555,14 +546,14 @@ def main():
                 config,
                 outputs_dir,
             )
-        except:
+        except Exception:
             print("All zero")
         pred_dfs += [pred_df]
 
     # Combine all the dataframes
     combined_df = pd.concat(pred_dfs)
     combined_df.to_csv(
-        os.path.join(outputs_dir, f"mmlu_multi_experts_all.csv"), index=False
+        os.path.join(outputs_dir, "mmlu_multi_experts_all.csv"), index=False
     )
 
     all_performance_metrics = calculate_performance_metrics(combined_df, top_ks)

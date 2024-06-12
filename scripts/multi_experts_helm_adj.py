@@ -1,10 +1,7 @@
-import argparse
-import logging
 import math
 import os
 import re
 import sys
-from time import sleep
 
 sys.path.append(os.getcwd())
 from dotenv import load_dotenv
@@ -17,17 +14,14 @@ import pandas as pd
 from datasets import load_dataset
 from dotenv import load_dotenv
 from fuzzywuzzy import fuzz
-from huggingface_hub import login
 from sklearn.metrics import (
     accuracy_score,
-    average_precision_score,
     confusion_matrix,
     f1_score,
     fbeta_score,
     precision_score,
     recall_score,
 )
-from tqdm import tqdm
 
 load_dotenv(dotenv_path=".env")
 
@@ -103,7 +97,7 @@ def get_gt_agreement(gt_answer, llm_preds, top_k):
     # Count occurrences of each label in the list
     for label in subset_llm_preds:
         if label.strip() not in label_counts:
-            #print(f"{label} is not a valid answer.")
+            # print(f"{label} is not a valid answer.")
             continue
         label_counts[label.strip()] += 1
 
@@ -475,7 +469,8 @@ def main():
         )
 
         pred_df.to_csv(
-            os.path.join(outputs_dir, f"adj_mmlu_multi_experts_{config}.csv"), index=False
+            os.path.join(outputs_dir, f"adj_mmlu_multi_experts_{config}.csv"),
+            index=False,
         )
         # pred_df = pd.read_csv(
         #     os.path.join(outputs_dir, f"mmlu_multi_experts_{config}.csv")
@@ -496,7 +491,7 @@ def main():
     # Combine all the dataframes
     combined_df = pd.concat(pred_dfs)
     combined_df.to_csv(
-        os.path.join(outputs_dir, f"adj_mmlu_multi_experts_all.csv"), index=False
+        os.path.join(outputs_dir, "adj_mmlu_multi_experts_all.csv"), index=False
     )
 
     all_performance_metrics = calculate_performance_metrics(combined_df, top_ks)

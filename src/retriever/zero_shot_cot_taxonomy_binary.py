@@ -8,7 +8,6 @@ from tqdm import tqdm
 sys.path.append(os.path.join(os.getcwd().split("/src")[0], "src"))
 sys.path.append(os.getcwd().split("/src")[0])
 
-from pathlib import Path
 
 import anthropic
 import pandas as pd
@@ -20,9 +19,6 @@ from openai import OpenAI
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
-    LlamaForCausalLM,
-    LlamaTokenizerFast,
-    pipeline,
 )
 
 load_dotenv(dotenv_path=".env")
@@ -39,7 +35,6 @@ from src.taxonomy.data_utils import (
     normalize_error_type,
     verbaliser,
 )
-from src.taxonomy.evaluations import compute_metrics
 from model_utils_cot_binary import (
     INSTRUCTION,
     predict_claude,
@@ -51,7 +46,6 @@ home_path = os.getcwd().split("src")[0]
 
 
 def main(args):
-
     if not os.path.exists(os.path.join(home_path, "outputs/retriever_evaluation/")):
         os.makedirs(os.path.join(home_path, "outputs/retriever_evaluation/"))
 

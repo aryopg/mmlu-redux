@@ -1,14 +1,10 @@
-from datasets import load_dataset, interleave_datasets, concatenate_datasets
-import transformers
 import torch
 from peft import AutoPeftModelForCausalLM
 from transformers import AutoTokenizer
-import sys
 from tqdm import tqdm
 import json
 from torch.nn import CrossEntropyLoss
 
-from utils import NestedKeyDataset
 
 
 def load_model():
@@ -56,7 +52,6 @@ def test():
                 with torch.no_grad():
                     outputs = model(inputs.cuda())
                     logits = outputs.logits
-                pred = logits[:, -3].argmax(dim=-1)
                 label = inputs[:, -2]
                 shift_logits = logits[:, -3]
                 shift_label = inputs[:, -2].to(shift_logits.device)

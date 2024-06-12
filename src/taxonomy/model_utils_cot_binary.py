@@ -1,7 +1,4 @@
-import os
 import torch
-from openai import OpenAI
-import anthropic
 
 INSTRUCTION = (
     "# Task:\n"
@@ -24,24 +21,25 @@ INSTRUCTION = (
     "The 'classification' is either ok, or not ok. \n\n"
     "FOLLOW THE EXACT EXAMPLE ANSWER FORMAT ALL IN ONE LINE WITHOUT PROVIDING EXPLANATION"
     "# Example Answer:\n"
-    "{\"Question Presentation\": \"OK\", \"MC Options Presentation\": \"OK\", \"Answer Evaluation\": \"One\", \"Ground Truth Answer Evaluation\": \"Correct\", \"Classification\": \"OK\"}"
+    '{"Question Presentation": "OK", "MC Options Presentation": "OK", "Answer Evaluation": "One", "Ground Truth Answer Evaluation": "Correct", "Classification": "OK"}'
 )
 
 
 def predict_gpt4(client, model_name, prompt, generation_configs, messages=None):
     if messages:
         response = client.chat.completions.create(
-            model=model_name,
-            messages=messages,
-            **generation_configs
+            model=model_name, messages=messages, **generation_configs
         )
     else:
         response = client.chat.completions.create(
             model=model_name,
-            messages=[{"role": "system", "content": INSTRUCTION}, {"role": "user", "content": prompt}],
-            **generation_configs
+            messages=[
+                {"role": "system", "content": INSTRUCTION},
+                {"role": "user", "content": prompt},
+            ],
+            **generation_configs,
         )
-    
+
     if response and response.choices:
         prediction = response.choices[0].message.content
     else:
@@ -62,9 +60,11 @@ def predict_llama(model, tokenizer, prompt, max_new_tokens, device):
         max_new_tokens=max_new_tokens,
         num_return_sequences=1,
         do_sample=False,
-        temperature=0.0
+        temperature=0.0,
     )
-    prediction = tokenizer.decode(output[0, input_ids.shape[1]:], skip_special_tokens=True)
+    prediction = tokenizer.decode(
+        output[0, input_ids.shape[1] :], skip_special_tokens=True
+    )
     return prediction
 
 
@@ -74,13 +74,11 @@ def predict_claude(client, prompt):
         max_tokens=200,
         temperature=0.0,
         system=INSTRUCTION,
-        messages=[
-            {"role": "user", "content": prompt}
-        ]
+        messages=[{"role": "user", "content": prompt}],
     )
     prediction = response.content[0].text
     return prediction
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     print(INSTRUCTION)

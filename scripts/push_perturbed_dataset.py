@@ -1,6 +1,6 @@
 import os
 from datasets import load_from_disk
-from src.constants import CORRUPTED_OUTPUT_DIRECTORY, ENV_PATH, OUTPUT_DIRECTORY
+from src.constants import ENV_PATH, OUTPUT_DIRECTORY
 
 import argparse
 

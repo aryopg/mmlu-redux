@@ -1,13 +1,9 @@
-import os
 
-import anthropic
 import torch
-from openai import OpenAI
 
 INSTRUCTION = (
     "# Task:\n"
     "Given a question, its choices, and the ground truth answer, classify the question as either 'oK' or 'not ok'.\n"
-
     "- 'ok' means that the question and the choices are understandable, and the ground truth answer is correct.\n"
     "- 'not ok' means that the ground truth answer is incorrect, or the question and the choices are not well presented.\n"
     "Classify with 'ok' or 'not ok' WITHOUT PROVIDING ANY REASONING"
@@ -25,7 +21,7 @@ def predict_gpt4(client, model_name, prompt, generation_configs, messages=None):
             if not messages
             else messages
         ),
-        **generation_configs
+        **generation_configs,
     )
     if response and response.choices:
         prediction = response.choices[0].message.content
@@ -54,6 +50,7 @@ def predict_llama(model, tokenizer, prompt, max_new_tokens, device):
     )
     return prediction
 
+
 def predict_claude(client, messages):
     system_message = None
     formatted_messages = []
@@ -62,14 +59,16 @@ def predict_claude(client, messages):
         if message["role"] == "system":
             system_message = message["content"]
         else:
-            formatted_messages.append({"role": message["role"], "content": message["content"]})
+            formatted_messages.append(
+                {"role": message["role"], "content": message["content"]}
+            )
 
     response = client.messages.create(
         model="claude-3-opus-20240229",
         max_tokens=700,
         temperature=0.0,
         system=system_message,
-        messages=formatted_messages
+        messages=formatted_messages,
     )
 
     prediction = response.content[0].text

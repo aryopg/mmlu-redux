@@ -1,6 +1,4 @@
 import json
-import spacy
-import time
 import os
 
 os.environ["PYSERINI_CACHE"] = "/data/cache/"
@@ -34,7 +32,6 @@ class Retriever:
             self.searcher = LuceneSearcher.from_prebuilt_index("enwiki-paragraphs")
 
     def retrieve_paragraphs(self, query, num_ret=5):
-
         hits = self.searcher.search(query, num_ret)
         paragraphs = []
         for i in range(len(hits)):
