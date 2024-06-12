@@ -66,13 +66,15 @@ bash scripts/bash_scripts/mmlu_subdatasets_cot_taxonomy.sh
 Make sure to modify the script if needed to specify the desired subdatasets and model type.
 
 
-## LabelChaos
+## Supervised Fine-tuning
 
-### Introduction
+### LabelChaos
 
 To validate our fine-tuning strategy for error detection, we developed LabelChaos, a dataset designed to mirror the error distribution of the original MMLU. This dataset serves as a benchmark for finetuning models, which are subsequently evaluated on MMLU-Redux.
 
-### Create an environment file
+To create LabelChaos, we selected and merged six manually labelled datasets. We chose datasets annotated by humans: [OpenBookQA](https://huggingface.co/datasets/allenai/openbookqa), [ARC-Challenge](https://huggingface.co/datasets/allenai/ai2_arc), [ARC-Easy](https://huggingface.co/datasets/allenai/ai2_arc), [TruthfulQA](https://huggingface.co/datasets/truthfulqa/truthful_qa), [MedQA](https://huggingface.co/datasets/bigbio/med_qa), [MathQA](https://huggingface.co/datasets/allenai/math_qa).
+
+#### Run Setup
 For interacting with the HF Hub and/or having access to OpenAI models, create an environment file containing the following keys
 ```bash
 - HF_READ_TOKEN
@@ -81,12 +83,12 @@ For interacting with the HF Hub and/or having access to OpenAI models, create an
 ```
 You can create your own file starting from an [example here](.env_example)
 
-### Corruption task
+#### Corrupting dataset
 
 With these instructions you can apply perturbations to any dataset structured as MMLU
 
 First, you should define the parameters required for the perturbation.
-You should crate/edit the configuration file at 'project_dir/corruption/conf.yml'.
+You should create/edit the configuration file at 'project_dir/corruption/conf.yml'.
 You can use [this file](conf/corruption/conf_example.yml) as a reference.
 
 ```bash
