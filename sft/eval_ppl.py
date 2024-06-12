@@ -6,7 +6,6 @@ import json
 from torch.nn import CrossEntropyLoss
 
 
-
 def load_model():
     lora_model_id = "lora_lr/meta-llama/Meta-Llama-3-8B-Instruct/unaligned/"
     lora_model_id = "lora_full/meta-llama/Meta-Llama-3-8B-Instruct/unaligned/"
