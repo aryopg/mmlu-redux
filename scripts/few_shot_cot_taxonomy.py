@@ -7,7 +7,6 @@ from tqdm import tqdm
 
 sys.path.append(os.path.join(os.getcwd(), "src"))
 
-from pathlib import Path
 
 import anthropic
 import pandas as pd
@@ -19,9 +18,6 @@ from openai import OpenAI
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
-    LlamaForCausalLM,
-    LlamaTokenizerFast,
-    pipeline,
 )
 
 load_dotenv(dotenv_path=".env")
@@ -35,7 +31,6 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.taxonomy.data_utils import (
     extract_braced_content,
     normalize_error_type,
-    verbaliser,
 )
 from src.taxonomy.evaluations import compute_metrics_binary, few_shot_prompt
 from src.taxonomy.model_utils_binary import (
@@ -68,8 +63,8 @@ FEW_SHOT_EXAMPLES = [
             "MC Options Presentation": "ok",
             "Answer Evaluation": "ok",
             "Ground Truth Answer Evaluation": "ok",
-            "Classification": "ok",
-            "Answer": "D. Pacific Ocean",
+            "Classification": "not ok",
+            "Answer": "",
         },
     },
     {
@@ -205,25 +200,8 @@ FEW_SHOT_EXAMPLES = [
 ]
 
 
-def create_messages(
-    system_message: str,
-    user_message: str,
-    few_shot_examples: list[dict[str, str]] = None,
-    history: list[dict[str, str]] = None,
-) -> list[dict[str, str]]:
-    messages = [{"role": "system", "content": system_message}]
-    if len(few_shot_examples) > 0:
-        for example in few_shot_examples:
-            messages.append({"role": "user", "content": example["input"]})
-            messages.append({"role": "assistant", "content": example["output"]})
-    if history and len(history) > 0:
-        messages.extend(history)
-    messages.append({"role": "user", "content": user_message})
-    return messages
-
-
 def main(args):
-    log_file = "./outputs/fewshot_taxonomy_binary_evaluation/log_file.txt"
+    log_file = "./outputs/fewshot_taxonomy_binary_evaluation/log_file_binary.txt"
 
     os.makedirs(os.path.dirname(log_file), exist_ok=True)
 
@@ -249,7 +227,7 @@ def main(args):
             "presence_penalty": 0,
             "max_tokens": 200,
         }
-    if args.model_type == "gpt4turbo":
+    elif args.model_type == "gpt4turbo":
         openai_client = OpenAI(
             api_key=os.getenv("OPENAI_API_KEY", OPENAI_API_KEY),
         )
@@ -346,15 +324,12 @@ def main(args):
             if model_answer.startswith("{") and model_answer.endswith("}"):
                 prediction_json = json.loads(model_answer)
                 predicted_error_type = prediction_json["Classification"]
-                predicted_answer = prediction_json.get("Answer", "")
             else:
                 model_answer = prediction
                 predicted_error_type = "Invalid Prediction"
-                predicted_answer = ""
         except (json.JSONDecodeError, KeyError, IndexError) as e:
             model_answer = prediction
             predicted_error_type = "Invalid Prediction"
-            predicted_answer = ""
             print(f"Error parsing prediction for instance {i}: {str(e)}")
             print(f"Model answer: {model_answer}")
 
@@ -375,7 +350,6 @@ def main(args):
         pred_df["predicted_error_type"].str.strip().str.lower()
     )
     pred_df["error_type_ok"] = pred_df["error_type_ok"].str.strip().str.lower()
-    exact_match = (pred_df["predicted_error_type"] == pred_df["error_type_ok"]).mean()
 
     metrics = compute_metrics_binary(pred_df)
     print(f"Metrics: {metrics}")
@@ -384,7 +358,7 @@ def main(args):
 
     pred_df.to_csv(
         f"./outputs/fewshot_taxonomy_binary_evaluation/"
-        f"binary_mini_mmlu_groundtruth_correctness_{args.model_type}_{args.config}.csv",
+        f"updated_binary_mini_mmlu_groundtruth_correctness_{args.model_type}_{args.config}.csv",
         index=False,
     )
 

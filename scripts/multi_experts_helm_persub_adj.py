@@ -1,10 +1,7 @@
-import argparse
-import logging
 import math
 import os
 import re
 import sys
-from time import sleep
 
 sys.path.append(os.getcwd())
 from dotenv import load_dotenv
@@ -17,22 +14,19 @@ import pandas as pd
 from datasets import load_dataset
 from dotenv import load_dotenv
 from fuzzywuzzy import fuzz
-from huggingface_hub import login
 from sklearn.metrics import (
     accuracy_score,
-    average_precision_score,
     confusion_matrix,
     f1_score,
     fbeta_score,
     precision_score,
     recall_score,
 )
-from tqdm import tqdm
 
 load_dotenv(dotenv_path=".env")
 
 HELM_RANK_ADJ = {
-    "college_chemistry" : [
+    "college_chemistry": [
         "openai_gpt-4o-2024-05-13",
         "mistralai_mixtral-8x22b",
         "anthropic_claude-3-opus-20240229",
@@ -56,7 +50,7 @@ HELM_RANK_ADJ = {
         "mistralai_mixtral-8x22b",
         "openai_gpt-4-1106-preview",
     ],
-    "econometrics" : [
+    "econometrics": [
         "anthropic_claude-3-opus-20240229",
         "google_gemini-1.5-pro-preview-0409",
         "openai_gpt-4o-2024-05-13",
@@ -68,7 +62,7 @@ HELM_RANK_ADJ = {
         "google_text-unicorn@001",
         "google_gemini-1.5-flash-preview-0514",
     ],
-    "formal_logic" : [
+    "formal_logic": [
         "anthropic_claude-3-opus-20240229",
         "google_gemini-1.5-pro-preview-0409",
         "google_text-unicorn@001",
@@ -80,7 +74,7 @@ HELM_RANK_ADJ = {
         "openai_gpt-4o-2024-05-13",
         "openai_gpt-4-1106-preview",
     ],
-    "global_facts" : [
+    "global_facts": [
         "anthropic_claude-3-opus-20240229",
         "google_gemini-1.5-pro-preview-0409",
         "openai_gpt-4-1106-preview",
@@ -92,7 +86,7 @@ HELM_RANK_ADJ = {
         "mistralai_mixtral-8x22b",
         "meta_llama-3-70b",
     ],
-    "high_school_physics" : [
+    "high_school_physics": [
         "anthropic_claude-3-opus-20240229",
         "openai_gpt-4o-2024-05-13",
         "openai_gpt-4-0613",
@@ -104,7 +98,7 @@ HELM_RANK_ADJ = {
         "google_text-unicorn@001",
         "mistralai_mixtral-8x22b",
     ],
-    "machine_learning" : [
+    "machine_learning": [
         "anthropic_claude-3-opus-20240229",
         "openai_gpt-4-0613",
         "meta_llama-3-70b",
@@ -116,7 +110,7 @@ HELM_RANK_ADJ = {
         "google_gemini-1.5-pro-preview-0409",
         "google_gemini-1.5-flash-preview-0514",
     ],
-    "professional_law" : [
+    "professional_law": [
         "openai_gpt-4o-2024-05-13",
         "openai_gpt-4-0613",
         "openai_gpt-4-1106-preview",
@@ -128,7 +122,7 @@ HELM_RANK_ADJ = {
         "google_gemini-1.5-flash-preview-0514",
         "mistralai_mixtral-8x22b",
     ],
-    "public_relations" : [
+    "public_relations": [
         "anthropic_claude-3-opus-20240229",
         "openai_gpt-4-1106-preview",
         "mistralai_mixtral-8x22b",
@@ -140,7 +134,7 @@ HELM_RANK_ADJ = {
         "meta_llama-3-70b",
         "openai_gpt-4-0613",
     ],
-    "virology" : [
+    "virology": [
         "openai_gpt-4o-2024-05-13",
         "openai_gpt-4-0613",
         "openai_gpt-4-1106-preview",
@@ -226,7 +220,7 @@ def get_gt_agreement(gt_answer, llm_preds, top_k):
     # Count occurrences of each label in the list
     for label in subset_llm_preds:
         if label.strip() not in label_counts:
-            #print(f"{label} is not a valid answer.")
+            # print(f"{label} is not a valid answer.")
             continue
         label_counts[label.strip()] += 1
 
@@ -468,7 +462,9 @@ def plot_metrics_separate(data_dicts, config, outputs_dir):
     # plt.tight_layout()
     # plt.show()
     fig.savefig(
-        os.path.join(outputs_dir, f"persub_adj_mmlu_multi_experts_{config}_performance.png")
+        os.path.join(
+            outputs_dir, f"persub_adj_mmlu_multi_experts_{config}_performance.png"
+        )
     )
 
 
@@ -564,7 +560,8 @@ def main():
                 raise e
             # Get majority prediction
             llm_preds = [
-                llm_pred[model_name].values[0].strip() for model_name in HELM_RANK_ADJ[config]
+                llm_pred[model_name].values[0].strip()
+                for model_name in HELM_RANK_ADJ[config]
             ]
 
             gt_agreements = []
@@ -598,7 +595,8 @@ def main():
         )
 
         pred_df.to_csv(
-            os.path.join(outputs_dir, f"persub_adj_mmlu_multi_experts_{config}.csv"), index=False
+            os.path.join(outputs_dir, f"persub_adj_mmlu_multi_experts_{config}.csv"),
+            index=False,
         )
         # pred_df = pd.read_csv(
         #     os.path.join(outputs_dir, f"mmlu_multi_experts_{config}.csv")
@@ -619,7 +617,7 @@ def main():
     # Combine all the dataframes
     combined_df = pd.concat(pred_dfs)
     combined_df.to_csv(
-        os.path.join(outputs_dir, f"persub_adj_mmlu_multi_experts_all.csv"), index=False
+        os.path.join(outputs_dir, "persub_adj_mmlu_multi_experts_all.csv"), index=False
     )
 
     all_performance_metrics = calculate_performance_metrics(combined_df, top_ks)

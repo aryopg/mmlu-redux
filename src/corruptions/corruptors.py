@@ -190,7 +190,7 @@ def bad_question_clarity(example, llm):
     initial_question = example["question"]
 
     bad_question = generate_question_with_same_meaning(initial_question, llm)
-    example["corruptions"] = f"bad_question_clarity"
+    example["corruptions"] = "bad_question_clarity"
 
     example["question"] = bad_question
     example["original_question"] = initial_question

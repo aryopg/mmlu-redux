@@ -3,10 +3,10 @@
 
 import os
 import sys
-import json
 import torch
 import argparse
 import logging
+import re
 
 import wandb
 
@@ -15,7 +15,6 @@ from transformers import (
     AutoModelForCausalLM,
     BitsAndBytesConfig,
     TrainingArguments,
-    EvalPrediction,
 )
 from transformers.utils import is_bitsandbytes_available, is_flash_attn_2_available
 
@@ -24,17 +23,12 @@ from datasets import load_dataset, interleave_datasets, concatenate_datasets
 from trl import SFTTrainer, setup_chat_format, DataCollatorForCompletionOnlyLM
 from peft import LoraConfig
 
-from huggingface_hub import HfApi
 
 from utils import (
     check_bf16_support,
-    extract_templates,
-    create_model_path,
-    get_best_results,
     smart_tokenizer_and_embedding_resize,
 )
 
-from typing import Dict
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 os.environ["WANDB_PROJECT"] = "mmlu-llm_v1"
@@ -287,31 +281,6 @@ def main(argv):
     dev_ds = interleave_datasets(
         [ok_dev_ds, not_ok_dev_ds], probabilities=[0.5, 0.5], seed=42
     )
-
-    def create_conversation_toxic(example):
-        if "gemma" in args.model:
-            messages = [
-                {
-                    "role": "user",
-                    "content": DEFAULT_INSTRUCTION_SYS + "\n" + example["prompt"],
-                },
-                {"role": "model", "content": example["response"]},
-            ]
-        elif "Llama-3" in args.model or "Llama-2" in args.model:
-            messages = [
-                {"role": "system", "content": DEFAULT_INSTRUCTION_SYS},
-                {"role": "user", "content": example["prompt"]},
-                {"role": "assistant", "content": example["response"]},
-            ]
-        elif "Mistral" in args.model:
-            messages = [
-                {
-                    "role": "user",
-                    "content": DEFAULT_INSTRUCTION_SYS + "\n" + example["prompt"],
-                },
-                {"role": "assistant", "content": example["response"]},
-            ]
-        return {"messages": messages}
 
     collator = None
     if args.collator in {"completion"}:

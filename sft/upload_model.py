@@ -1,5 +1,3 @@
-import transformers
-import torch
 from peft import AutoPeftModelForCausalLM
 from transformers import AutoTokenizer
 
@@ -15,7 +13,7 @@ from transformers import AutoTokenizer
 lora_model_id = (
     "lora_cast_prob_test_uniform_4096/meta-llama/Meta-Llama-3-8B-Instruct/unaligned/"
 )
-repo_id = f"edinburgh-dawg/mmlu-error-detection-3classes-balanced-step4096-llama3"
+repo_id = "edinburgh-dawg/mmlu-error-detection-3classes-balanced-step4096-llama3"
 print(lora_model_id)
 print(repo_id)
 model = AutoPeftModelForCausalLM.from_pretrained(lora_model_id)

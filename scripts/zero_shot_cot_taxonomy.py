@@ -13,13 +13,9 @@ from openai import OpenAI
 import anthropic
 from huggingface_hub import login
 import torch
-from pathlib import Path
 from transformers import (
-    LlamaForCausalLM,
-    LlamaTokenizerFast,
     AutoTokenizer,
     AutoModelForCausalLM,
-    pipeline,
 )
 from dotenv import load_dotenv
 
@@ -36,32 +32,30 @@ from src.taxonomy.data_utils import (
     extract_braced_content,
     normalize_error_type,
 )
-from src.taxonomy.model_utils_cot import (
+from src.taxonomy.model_utils_cot_binary import (
     predict_gpt4,
     predict_llama,
     predict_claude,
     INSTRUCTION,
 )
-from src.taxonomy.evaluations import compute_metrics
+from src.taxonomy.evaluations import compute_metrics_binary
 
 
 def main(args):
-    dataset = load_dataset(
-        "edinburgh-dawg/mini-mmlu", args.config, split="test", token=HF_READ_TOKEN
-    )
+    if not os.path.exists("./outputs/new_zeroshot_taxonomy_cot_binary_evaluation/"):
+        os.makedirs("./outputs/new_zeroshot_taxonomy_cot_binary_evaluation/")
 
-    if not os.path.exists("./outputs/zeroshot_taxonomy_cot_evaluation/"):
-        os.makedirs("./outputs/zeroshot_taxonomy_cot_evaluation/")
-
-    log_file = (
-        f"./outputs/zeroshot_taxonomy_cot_evaluation/log_file_{args.model_type}.txt"
-    )
+    log_file = "./outputs/new_zeroshot_taxonomy_cot_binary_evaluation/log_file.txt"
 
     os.makedirs(os.path.dirname(log_file), exist_ok=True)
 
     with open(log_file, "a") as f:
         f.write(f"Model Type: {args.model_type}\n")
         f.write(f"Config: {args.config}\n")
+
+    dataset = load_dataset(
+        "edinburgh-dawg/labelchaos", args.config, split="test", token=HF_READ_TOKEN
+    )
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -115,11 +109,14 @@ def main(args):
             "question",
             "choices",
             "answer",
-            "error_type",
+            "corruptions",
             "model_answer",
             "predicted_error_type",
         ]
     )
+
+    if not os.path.exists("./outputs/new_zeroshot_taxonomy_cot_binary_evaluation/"):
+        os.makedirs("./new_outputs/zeroshot_taxonomy_cot_binary_evaluation/")
 
     parse_error_n = 0
     tqdm_bar = tqdm(enumerate(dataset), total=len(dataset))
@@ -137,8 +134,7 @@ def main(args):
             prediction = predict_gpt4(
                 openai_client, gpt4_model_name, verbalised_text, gpt4_generation_configs
             )
-            print("prediction", prediction)
-        if args.model_type == "gpt4turbo":
+        elif args.model_type == "gpt4turbo":
             prediction = predict_gpt4(
                 openai_client, gpt4_model_name, verbalised_text, gpt4_generation_configs
             )
@@ -158,11 +154,9 @@ def main(args):
         try:
             model_answer = prediction
             model_answer = model_answer.split("\n")[-1]
-            model_answer = model_answer.replace("\n", " ").replace("\r", " ").strip()
             if model_answer.startswith("{") and model_answer.endswith("}"):
                 model_answer = model_answer.replace("classification", "Classification")
                 prediction_json = json.loads(model_answer)
-                print("prediction_json", prediction_json)
                 predicted_error_type = prediction_json["Classification"]
             else:
                 model_answer = prediction
@@ -178,19 +172,28 @@ def main(args):
             question,
             choices,
             answer,
-            normalize_error_type(item["error_type"]),
+            normalize_error_type(item["corruptions"]),
             model_answer,
             normalize_error_type(predicted_error_type),
         ]
 
-    metrics = compute_metrics(pred_df)
-    print(metrics)
+    pred_df["error_type_ok"] = pred_df["corruptions"].apply(
+        lambda x: "ok" if x == "None" else "notok"
+    )
+
+    pred_df["predicted_error_type"] = (
+        pred_df["predicted_error_type"].str.strip().str.lower()
+    )
+    pred_df["error_type_ok"] = pred_df["error_type_ok"].str.strip().str.lower()
+
+    metrics = compute_metrics_binary(pred_df)
+    print(f"Exact Match: {metrics}")
     with open(log_file, "a") as f:
         f.write(f"Metrics: {metrics}\n")
 
     pred_df.to_csv(
-        f"./outputs/zeroshot_taxonomy_cot_evaluation/"
-        f"mini_mmlu_groundtruth_correctness_zeroshot_cot_{args.model_type}_{args.config}.csv",
+        f"./outputs/new_zeroshot_taxonomy_cot_binary_evaluation/"
+        f"new_binary_mini_mmlu_groundtruth_correctness_zeroshot_cot_{args.model_type}_{args.config}.csv",
         index=False,
     )
 

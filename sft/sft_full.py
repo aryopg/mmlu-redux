@@ -3,11 +3,10 @@
 
 import os
 import sys
-import json
 import torch
 import argparse
 import logging
-
+import re
 import wandb
 
 from transformers import (
@@ -15,26 +14,20 @@ from transformers import (
     AutoModelForCausalLM,
     BitsAndBytesConfig,
     TrainingArguments,
-    EvalPrediction,
 )
 from transformers.utils import is_bitsandbytes_available, is_flash_attn_2_available
 
-from datasets import load_dataset, interleave_datasets, concatenate_datasets
+from datasets import load_dataset, interleave_datasets
 
 from trl import SFTTrainer, setup_chat_format, DataCollatorForCompletionOnlyLM
 from peft import LoraConfig
 
-from huggingface_hub import HfApi
 
 from utils import (
     check_bf16_support,
-    extract_templates,
-    create_model_path,
-    get_best_results,
     smart_tokenizer_and_embedding_resize,
 )
 
-from typing import Dict
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 os.environ["WANDB_PROJECT"] = "mmlu-llm_v1"
@@ -194,7 +187,7 @@ def main(argv):
     subset_id_to_ds = {k: load_dataset(ds_id, k) for k in subset_lst}
 
     DEFAULT_INSTRUCTION = "Analyze the following multiple-choice question and the corresponding answer carefully, and tell me which category it falls in:\n\n1. bad options clarity\n2. bad questions clarity\n3. clean\n4. multiple correct answers\n5. no correct answer\n6. wrong groundtruth"
-    #DEFAULT_INSTRUCTION = "Analyze the following multiple-choice question and the corresponding answer carefully, and tell me which category it falls in:\n\n1. bad presentation\n2. clean\n3. wrong groundtruth"
+    # DEFAULT_INSTRUCTION = "Analyze the following multiple-choice question and the corresponding answer carefully, and tell me which category it falls in:\n\n1. bad presentation\n2. clean\n3. wrong groundtruth"
     DEFAULT_INSTRUCTION = (
         "# Task:\n"
         "Given a triple consisting of a multiple choice question, its choices, and the corresponding ground truth answer, your task is to classify the triple into 'ok' or 'not ok'.\n\n"
@@ -251,12 +244,12 @@ def main(argv):
     subset_id_to_ds = {k: load_dataset(ds_id, k) for k in subset_lst}
 
     remapping = {
-        #"clean": "clean",
-        #"bad_questions_clarity": "bad presentation",
-        #"bad_options_clarity": "bad presentation",
-        #"no_correct_answer": "wrong groundtruth",
-        #"multiple_correct_answers": "wrong groundtruth",
-        #"wrong_groundtruth": "wrong groundtruth",
+        # "clean": "clean",
+        # "bad_questions_clarity": "bad presentation",
+        # "bad_options_clarity": "bad presentation",
+        # "no_correct_answer": "wrong groundtruth",
+        # "multiple_correct_answers": "wrong groundtruth",
+        # "wrong_groundtruth": "wrong groundtruth",
         "clean": "ok",
         "bad_questions_clarity": "not ok",
         "bad_options_clarity": "not ok",
@@ -266,7 +259,7 @@ def main(argv):
     }
 
     probs = [0.1, 0.1, 0.5, 0.1, 0.1, 0.1]
-    #probs = [0.009, 0.031, 0.848, 0.029, 0.013, 0.07]
+    # probs = [0.009, 0.031, 0.848, 0.029, 0.013, 0.07]
 
     for subset_id, ds in subset_id_to_ds.items():
         for split_name in ["train", "validation", "test"]:
@@ -277,7 +270,7 @@ def main(argv):
                     entry["question"], entry["choices"], entry["answer"]
                 )
                 input_lst += [input_str]
-                #output_lst += [(subset_id.replace("_", " "))]
+                # output_lst += [(subset_id.replace("_", " "))]
                 output_lst += [remapping[subset_id]]
 
             ds[split_name] = ds[split_name].add_column("input", input_lst)
@@ -338,31 +331,6 @@ def main(argv):
         batched=False,
         desc="Generating Yes conversations",
     )
-
-    def create_conversation_toxic(example):
-        if "gemma" in args.model:
-            messages = [
-                {
-                    "role": "user",
-                    "content": DEFAULT_INSTRUCTION_SYS + "\n" + example["prompt"],
-                },
-                {"role": "model", "content": example["response"]},
-            ]
-        elif "Llama-3" in args.model or "Llama-2" in args.model:
-            messages = [
-                {"role": "system", "content": DEFAULT_INSTRUCTION_SYS},
-                {"role": "user", "content": example["prompt"]},
-                {"role": "assistant", "content": example["response"]},
-            ]
-        elif "Mistral" in args.model:
-            messages = [
-                {
-                    "role": "user",
-                    "content": DEFAULT_INSTRUCTION_SYS + "\n" + example["prompt"],
-                },
-                {"role": "assistant", "content": example["response"]},
-            ]
-        return {"messages": messages}
 
     collator = None
     if args.collator in {"completion"}:

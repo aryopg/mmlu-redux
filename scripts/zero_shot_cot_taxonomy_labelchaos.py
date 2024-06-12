@@ -12,13 +12,9 @@ from openai import OpenAI
 import anthropic
 from huggingface_hub import login
 import torch
-from pathlib import Path
 from transformers import (
-    LlamaForCausalLM,
-    LlamaTokenizerFast,
     AutoTokenizer,
     AutoModelForCausalLM,
-    pipeline,
 )
 from dotenv import load_dotenv
 
@@ -35,20 +31,24 @@ from src.taxonomy.data_utils import (
     normalize_error_type,
     extract_braced_content,
 )
-from src.taxonomy.model_utils_binary import (
+from src.taxonomy.model_utils_cot_binary import (
     predict_gpt4,
     predict_llama,
     predict_claude,
     INSTRUCTION,
 )
-from src.taxonomy.evaluations import compute_metrics, compute_metrics_binary
+from src.taxonomy.evaluations import compute_metrics_binary
 
 
 def main(args):
-    if not os.path.exists("./outputs/zeroshot_taxonomy_binary_evaluation/"):
-        os.makedirs("./outputs/zeroshot_taxonomy_binary_evaluation/")
+    if not os.path.exists(
+        "./outputs/labelchaos_cot_short_zeroshot_taxonomy_binary_evaluation/"
+    ):
+        os.makedirs(
+            "./outputs/labelchaos_cot_short_zeroshot_taxonomy_binary_evaluation/"
+        )
 
-    log_file = "./outputs/zeroshot_taxonomy_binary_evaluation/log_file_llama.txt"
+    log_file = f"./outputs/labelchaos_cot_short_zeroshot_taxonomy_binary_evaluation/log_file_{args.model_type}.txt"
 
     os.makedirs(os.path.dirname(log_file), exist_ok=True)
 
@@ -57,7 +57,7 @@ def main(args):
         f.write(f"Config: {args.config}\n")
 
     dataset = load_dataset(
-        "edinburgh-dawg/mini-mmlu", args.config, split="test", token=HF_READ_TOKEN
+        "edinburgh-dawg/labelchaos", args.config, split="test", token=HF_READ_TOKEN
     )
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -112,7 +112,7 @@ def main(args):
             "question",
             "choices",
             "answer",
-            "error_type",
+            "corruptions",
             "model_answer",
             "predicted_error_type",
         ]
@@ -129,7 +129,7 @@ def main(args):
             prediction = predict_gpt4(
                 openai_client, gpt4_model_name, verbalised_text, gpt4_generation_configs
             )
-        elif args.model_type == "gpt-4-turbo":
+        elif args.model_type == "gpt4turbo":
             prediction = predict_gpt4(
                 openai_client, gpt4_model_name, verbalised_text, gpt4_generation_configs
             )
@@ -154,7 +154,7 @@ def main(args):
             else:
                 model_answer = prediction
                 predicted_error_type = "Invalid Prediction"
-        except (json.JSONDecodeError, KeyError, IndexError) as e:
+        except (json.JSONDecodeError, KeyError, IndexError):
             model_answer = prediction
             predicted_error_type = "Invalid Prediction"
 
@@ -162,12 +162,12 @@ def main(args):
             question,
             choices,
             answer,
-            normalize_error_type(dataset[i]["error_type"]),
+            normalize_error_type(dataset[i]["corruptions"]),
             model_answer,
             normalize_error_type(predicted_error_type),
         ]
 
-    pred_df["error_type_ok"] = pred_df["error_type"].apply(
+    pred_df["error_type_ok"] = pred_df["corruptions"].apply(
         lambda x: "ok" if x == "ok" else "notok"
     )
 
@@ -175,16 +175,15 @@ def main(args):
         pred_df["predicted_error_type"].str.strip().str.lower()
     )
     pred_df["error_type_ok"] = pred_df["error_type_ok"].str.strip().str.lower()
-    exact_match = (pred_df["predicted_error_type"] == pred_df["error_type_ok"]).mean()
 
     metrics = compute_metrics_binary(pred_df)
-    print(f"Metrics: {metrics:.4f}")
+    print(f"Metrics: {metrics}")
     with open(log_file, "a") as f:
-        f.write(f"Metrics: {metrics:.4f}\n")
+        f.write(f"Metrics: {metrics}\n")
 
     pred_df.to_csv(
-        f"./outputs/zeroshot_taxonomy_binary_evaluation/"
-        f"binary_mini_mmlu_groundtruth_correctness_zeroshot_{args.model_type}_{args.config}.csv",
+        f"./outputs/labelchaos_cot_short_zeroshot_taxonomy_binary_evaluation/"
+        f"short_binary_mini_mmlu_groundtruth_correctness_zeroshot_{args.model_type}_{args.config}.csv",
         index=False,
     )
 
