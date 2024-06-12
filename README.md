@@ -1,5 +1,9 @@
 # ARE WE DONE WITH MMLU?
 
+## MMLU-Redux
+
+Please refer to [the Hugging Face page of MMLU-Redux](https://huggingface.co/datasets/edinburgh-dawg/mmlu-redux).
+
 ## Error Detection Evaluation
 
 ### Run
