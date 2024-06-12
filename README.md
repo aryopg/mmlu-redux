@@ -30,33 +30,33 @@ pip install -r requirements.txt
 To evaluate the Zero-Shot technique on the MMLU-Redux dataset, run the following command:
 
 ```bash
-Python scripts/zero_shot_taxonomy.py
+python scripts/zero_shot_taxonomy.py
 ```
 
 To evaluate the Zero-Shot with CoT technique, run:
 
 ```bash
-Python scripts/zero_shot_cot_taxonomy.py
+python scripts/zero_shot_cot_taxonomy.py
 ```
 
 #### Few-Shot Evaluation
 To evaluate the Few-Shot technique on the MMLU-Redux dataset, run the following command:
 
 ```bash
-scripts/few_shot_taxonomy.py
+python scripts/few_shot_taxonomy.py
 ```
 
 To evaluate the Few-Shot with CoT technique, run:
 
 ```bash
-scripts/few_shot_cot_taxonomy.py
+python scripts/few_shot_cot_taxonomy.py
 ```
 
 #### Evaluating Multiple Datasets
 We also provide a convenient bash script to evaluate multiple MMLU-Redux subdatasets using the Chain of Thought (CoT) technique. To run the script, use the following command:
 
 ```bash
-scripts/bash_scripts/mmlu_subdatasets_cot_taxonomy.sh
+bash scripts/bash_scripts/mmlu_subdatasets_cot_taxonomy.sh
 ```
 
 Make sure to modify the script if needed to specify the desired subdatasets and model type.
