@@ -23,10 +23,16 @@ git clone https://github.com/aryopg/mmlu-redux.git
 cd mmlu-redux
 ```
 
-3. Install the required dependencies:
+3. Install open-jdk-21 for Pyserini dependency
+```bash
+apt-get install openjdk-21-jdk
+```
+
+4. Install the required dependencies:
 ```bash
 conda env create -f environment.yml
 ```
+
 
 ### Usage
 
