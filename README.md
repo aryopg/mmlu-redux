@@ -122,4 +122,9 @@ where
 
 ### Supervised Fine-tuning
 
-TBA
+We fine-tune the Llama-3 (8B-Instruct) using LabelChaos datasets. To balance the distribution, where most instances are labelled as "__correct__", we adjusted the label distribution to: 0.1 (Wrong Ground Truth), 0.1 (Poor Question Clarity), 0.1 (No Correct Answers), 0.1 (Unclear Options), 0.1 (Multiple Correct Answers), and 0.5 (correct). The training involves 2048 steps, with a batch size of 64, utilizing the AdamW optimizer with a learning rate of 0.0002 and no weight decay. We use LoRA with a rank of 16.
+```bash
+BATCH=8
+GRAD=8
+python sft/sft_full.py --model meta-llama/Meta-Llama-3-8B-Instruct --use-bf16 --batch-size ${BATCH} --gradient-accumulation-steps ${GRAD} --max-steps 2048 --collator completion --eval-steps 100 --output-dir lora_binary_uniform_2048 --lora-rank 16
+```
