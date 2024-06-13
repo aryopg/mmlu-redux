@@ -62,6 +62,20 @@ To evaluate the Few-Shot with CoT technique, run:
 python scripts/few_shot_cot_taxonomy.py
 ```
 
+#### RAG Evaluation
+To evaluate the RAG on the MMLU-Redux dataset, run the following command:
+
+```bash
+python src/retriever/zero_shot_taxonomy_binary.py
+```
+
+To evaluate the RAG with CoT technique, run the following command:
+
+```bash
+python src/retriever/zero_shot_cot_taxonomy_binary.py
+```
+
+
 #### Evaluating Multiple Datasets
 We also provide a convenient bash script to evaluate multiple MMLU-Redux subdatasets using the Chain of Thought (CoT) technique. To run the script, use the following command:
 
