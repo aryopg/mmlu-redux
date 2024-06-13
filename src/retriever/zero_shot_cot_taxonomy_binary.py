@@ -234,7 +234,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--config",
         type=str,
-        required=True,
+        required=False,
+        default="all",
         help="Configuration of the mini-mmlu dataset to use",
     )
 
