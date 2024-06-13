@@ -23,7 +23,7 @@ git clone https://github.com/aryopg/mmlu-redux.git
 cd mmlu-redux
 ```
 
-3. Install open-jdk-21 for Pyserini dependency
+3. Install open-jdk-21 as dependency for Pyserini 
 ```bash
 apt-get install openjdk-21-jdk
 ```
