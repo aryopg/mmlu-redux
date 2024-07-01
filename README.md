@@ -6,7 +6,7 @@ MMLU-Redux is a carefully annotated version of the [MMLU (Massive Multitask Lang
 
 ## Dataset Overview
 MMLU-Redux consists of 30 MMLU subjects, each containing 100 randomly sampled questions.
-Please refer to [**🤗 MMLU-Redux Dataset**](https://huggingface.co/datasets/mmlu-redux) for more details.
+Please refer to [**🤗 MMLU-Redux Dataset**](https://huggingface.co/datasets/edinburgh-dawg/mmlu-redux) for more details.
 
 ## Error Detection Evaluation
 
