@@ -160,3 +160,5 @@ cython_debug/
 .idea/
 
 /outputs/corrupted_data/
+
+*.DS_Store

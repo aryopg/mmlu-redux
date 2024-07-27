@@ -1,8 +1,100 @@
-# Don't Send Troops to Stop Ebola: Addressing Groundtruth Errors in MMLU
+# ARE WE DONE WITH MMLU?
+This repository contains the evaluation code for the paper "[**Are We Done With MMLU?**](https://arxiv.org/pdf/2406.04127)"
 
-## Proof-of-Concept
+## MMLU-Redux
+MMLU-Redux is a carefully annotated version of the [MMLU (Massive Multitask Language Understanding) dataset](https://arxiv.org/abs/2009.03300) to provide a more accurate and reliable benchmark for evaluating the performance of language models.
 
-### Create an environment file
+## Dataset Overview
+MMLU-Redux consists of 30 MMLU subjects, each containing 100 randomly sampled questions.
+Please refer to [**🤗 MMLU-Redux Dataset**](https://huggingface.co/datasets/edinburgh-dawg/mmlu-redux) for more details.
+
+## Error Detection Evaluation
+
+This evaluation provides a set of scripts for assessing the error detection capability of various prompting methods on the MMLU-Redux dataset. The methods include Zero-Shot, Zero-Shot with Chain of Thought (CoT), Few-Shot, and Few-Shot with CoT techniques.
+
+### Installation
+1. Clone the repository:
+```bash
+git clone https://github.com/aryopg/mmlu-redux.git
+```
+
+2. Navigate to the project directory:
+```bash
+cd mmlu-redux
+```
+
+3. Install open-jdk-21 as a dependency for Pyserini (only for RAG experiments)
+```bash
+apt-get install openjdk-21-jdk
+```
+
+4. Install the required dependencies:
+```bash
+conda env create -f environment.yml
+```
+
+
+### Usage
+
+#### Zero-Shot Evaluation
+To evaluate the Zero-Shot technique on the MMLU-Redux dataset, run the following command:
+
+```bash
+python scripts/zero_shot_taxonomy.py
+```
+
+To evaluate the Zero-Shot with CoT technique, run:
+
+```bash
+python scripts/zero_shot_cot_taxonomy.py
+```
+
+#### Few-Shot Evaluation
+To evaluate the Few-Shot technique on the MMLU-Redux dataset, run the following command:
+
+```bash
+python scripts/few_shot_taxonomy.py
+```
+
+To evaluate the Few-Shot with CoT technique, run:
+
+```bash
+python scripts/few_shot_cot_taxonomy.py
+```
+
+#### RAG Evaluation
+To evaluate the RAG on the MMLU-Redux dataset, run the following command:
+
+```bash
+python src/retriever/zero_shot_taxonomy_binary.py
+```
+
+To evaluate the RAG with CoT technique, run the following command:
+
+```bash
+python src/retriever/zero_shot_cot_taxonomy_binary.py
+```
+
+
+#### Evaluating Multiple Datasets
+We also provide a convenient bash script to evaluate multiple MMLU-Redux subdatasets using the Chain of Thought (CoT) technique. To run the script, use the following command:
+
+```bash
+bash scripts/bash_scripts/mmlu_subdatasets_cot_taxonomy.sh
+```
+
+Make sure to modify the script if needed to specify the desired subdatasets and model type.
+
+
+## Supervised Fine-tuning
+
+### LabelChaos
+
+To validate our fine-tuning strategy for error detection, we developed LabelChaos, a dataset designed to mirror the error distribution of the original MMLU. This dataset serves as a benchmark for finetuning models, which are subsequently evaluated on MMLU-Redux.
+
+To create LabelChaos, we selected and merged six manually labelled datasets. We chose datasets annotated by humans: [OpenBookQA](https://huggingface.co/datasets/allenai/openbookqa), [ARC-Challenge](https://huggingface.co/datasets/allenai/ai2_arc), [ARC-Easy](https://huggingface.co/datasets/allenai/ai2_arc), [TruthfulQA](https://huggingface.co/datasets/truthfulqa/truthful_qa), [MedQA](https://huggingface.co/datasets/bigbio/med_qa), [MathQA](https://huggingface.co/datasets/allenai/math_qa).
+
+#### Run Setup
 For interacting with the HF Hub and/or having access to OpenAI models, create an environment file containing the following keys
 ```bash
 - HF_READ_TOKEN
@@ -11,12 +103,12 @@ For interacting with the HF Hub and/or having access to OpenAI models, create an
 ```
 You can create your own file starting from an [example here](.env_example)
 
-### Corruption task
+#### Corrupting dataset
 
 With these instructions you can apply perturbations to any dataset structured as MMLU
 
 First, you should define the parameters required for the perturbation.
-You should crate/edit the configuration file at 'project_dir/corruption/conf.yml'.
+You should create/edit the configuration file at 'project_dir/corruption/conf.yml'.
 You can use [this file](conf/corruption/conf_example.yml) as a reference.
 
 ```bash
@@ -28,38 +120,11 @@ where
 - [DATASET_NAME] is the subset of the dataset you want to corrupt. By default, it is 'clean'
 - [A_PATH] a local directory where the output files will be stored. By default, it is 'project_dir/outputs/perturbed'
 
+### Supervised Fine-tuning
 
-### Run
-
+We fine-tune the Llama-3 (8B-Instruct) using LabelChaos datasets. To balance the distribution, where most instances are labelled as "__correct__", we adjusted the label distribution to: 0.1 (Wrong Ground Truth), 0.1 (Poor Question Clarity), 0.1 (No Correct Answers), 0.1 (Unclear Options), 0.1 (Multiple Correct Answers), and 0.5 (correct). The training involves 2048 steps, with a batch size of 64, utilizing the AdamW optimizer with a learning rate of 0.0002 and no weight decay. We use LoRA with a rank of 16.
 ```bash
-# Multi-expert strategy
-python scripts/multi_experts.py
-
-# Basic answerability prompt strategy
-python scripts/answerability_base.py
-
-# Taxonomy-based answerability prompt strategy
-python scripts/answerability_taxonomy.py
-python scripts/postprocess_taxonomy_answers.py
+BATCH=8
+GRAD=8
+python sft/sft_full.py --model meta-llama/Meta-Llama-3-8B-Instruct --use-bf16 --batch-size ${BATCH} --gradient-accumulation-steps ${GRAD} --max-steps 2048 --collator completion --eval-steps 100 --output-dir lora_binary_uniform_2048 --lora-rank 16
 ```
-
-Things are very much manual and hacky, so you may need to adjust the values within the script instead of argument-based for now.
-
-### Analysis
-
-#### Multi-expert strategy:
-
-I tried to simulate having 3 different LLMs answering the question. Ideally, we would have 3 strong LLMs (e.g., GPT-4, Claude, and Llama 70B). But because i'm stingy, I use GPT-3.5 for this PoC. I prompted GPT-3.5 with temperature = 0, 0.7 and 1 (yes, I could've just prompted it 3 times with non-zero temperature). For this setting, I checked:
-
-The percentage of expert that answers correctly (referred to as "Grountruth-Expert Agreement"): The count of exact match divided by the number of LLMs.
-The percentage of agreement between each expert (referred to as "Intra-Expert Agreement"): Pair-wise exact match divided by the number of possible pair-wise interaction.
-Aggregate score (Grountruth-Expert Agreement + Intra-Expert Agreement): The sum of the two scores above, such that I can sort with this score.
-I didn't do any statistical stuff yet, but from eye test, the Aggregate score looks quite aligned with Joshua's fix.
-
-#### Basic answerability prompt strategy:
-
-I prompted GPT-3.5 to determine whether the ground truth answer is correct or not given the question. The model can only answer "Correct" or "Incorrect". I then simply sort the answer row and do another eye test comparing with Joshua's fix. It seems quite ok, most of the questions that are ambiguous, incorrect, and require expert's opinions are also predicted as "Incorrect" by the model. But there are still some incorrect or ambiguous questions that are predicted as "Correct".
-
-#### Taxonomy-based answerability prompt strategy:
-
-I prompted GPT-3.5 to follow the taxonomy of erroneous question. Starting by checking question presentation, to mc options presentation, then evaluating the answers. This one is quite aligned with Joshua's answers too. But, it only predicts between "Wrong Groundtruth" and "OK". It doesn't predict bad questions or options presentation, which are actually present in the data. Is this just a problem of prompt optimisation?

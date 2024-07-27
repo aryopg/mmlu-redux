@@ -1,0 +1,5 @@
+,,anthropic_claude-3-opus-20240229_correct,openai_gpt-4o-2024-05-13_correct,openai_gpt-4-0613_correct,google_gemini-1.5-pro-preview-0409_correct,openai_gpt-4-1106-preview_correct,meta_llama-3-70b_correct,writer_palmyra-x-v3_correct,google_text-unicorn@001_correct,mistralai_mixtral-8x22b_correct,google_gemini-1.5-flash-preview-0514_correct
+Overall,Overall,0.54,0.56,0.56,0.55,0.56,0.55,0.56,0.56,0.56,0.53
+Grouped,OK,0.884,0.907,0.884,0.837,0.884,0.907,0.93,0.93,0.907,0.884
+Grouped,Not OK,0.281,0.298,0.316,0.333,0.316,0.281,0.281,0.281,0.298,0.263
+combined,,0.54 | 0.884 | 0.281,0.56 | 0.907 | 0.298,0.56 | 0.884 | 0.316,0.55 | 0.837 | 0.333,0.56 | 0.884 | 0.316,0.55 | 0.907 | 0.281,0.56 | 0.93 | 0.281,0.56 | 0.93 | 0.281,0.56 | 0.907 | 0.298,0.53 | 0.884 | 0.263

@@ -1,0 +1,164 @@
+Model Type: gpt-4-turbo
+Config: college_chemistry
+Exact Match: 0.7800
+Model Type: gpt-4-turbo
+Config: college_mathematics
+Model Type: gpt-4-turbo
+Config: college_chemistry
+Model Type: gpt-4-turbo
+Config: college_chemistry
+Model Type: gpt-4-turbo
+Config: college_chemistry
+Exact Match: 0.8900
+Model Type: gpt-4-turbo
+Config: econometrics
+Exact Match: 0.7000
+Model Type: gpt-4-turbo
+Config: college_mathematics
+Exact Match: 0.7500
+Model Type: gpt-4-turbo
+Config: formal_logic
+Exact Match: 0.9000
+Model Type: gpt-4-turbo
+Config: econometrics
+Exact Match: 0.8500
+Model Type: gpt-4-turbo
+Config: global_facts
+Exact Match: 0.7200
+Model Type: gpt-4-turbo
+Config: formal_logic
+Exact Match: 0.6400
+Model Type: gpt-4-turbo
+Config: high_school_physics
+Exact Match: 0.7900
+Model Type: gpt-4-turbo
+Config: global_facts
+Exact Match: 0.6100
+Model Type: gpt-4-turbo
+Config: high_school_physics
+Exact Match: 0.8400
+Model Type: gpt-4-turbo
+Config: machine_learning
+Exact Match: 0.8500
+Model Type: gpt-4-turbo
+Config: machine_learning
+Exact Match: 0.8200
+Model Type: gpt-4-turbo
+Config: professional_law
+Exact Match: 0.8200
+Model Type: gpt-4-turbo
+Config: professional_law
+Exact Match: 0.7700
+Model Type: gpt-4-turbo
+Config: public_relations
+Exact Match: 0.7700
+Model Type: gpt-4-turbo
+Config: virology
+Exact Match: 0.8000
+Model Type: gpt-4-turbo
+Config: public_relations
+Exact Match: 0.8100
+Model Type: gpt-4-turbo
+Config: virology
+Exact Match: 0.7700
+Model Type: gpt4
+Config: college_chemistry
+Exact Match: 0.7700
+Model Type: gpt4
+Config: college_mathematics
+Exact Match: 0.7800
+Exact Match: 0.9700
+Model Type: gpt4
+Config: econometrics
+Exact Match: 0.9000
+Model Type: gpt4
+Config: formal_logic
+Exact Match: 0.8800
+Model Type: gpt4
+Config: global_facts
+Model Type: gpt4
+Config: college_chemistry
+Exact Match: 0.5100
+Model Type: gpt4
+Config: high_school_physics
+Exact Match: 0.7600
+Model Type: gpt4
+Config: college_mathematics
+Exact Match: 0.9200
+Model Type: gpt4
+Config: machine_learning
+Exact Match: 0.9900
+Model Type: gpt4
+Config: econometrics
+Exact Match: 0.8600
+Model Type: gpt4
+Config: professional_law
+Exact Match: 0.9100
+Model Type: gpt4
+Config: formal_logic
+Exact Match: 0.7900
+Model Type: gpt4
+Config: public_relations
+Exact Match: 0.8700
+Model Type: gpt4
+Config: global_facts
+Exact Match: 0.5700
+Model Type: gpt4
+Config: high_school_physics
+Exact Match: 0.8200
+Model Type: gpt4
+Config: virology
+Exact Match: 0.9400
+Model Type: gpt4
+Config: machine_learning
+Exact Match: 0.7200
+Exact Match: 0.8600
+Model Type: gpt4
+Config: professional_law
+Exact Match: 0.8000
+Model Type: gpt4
+Config: public_relations
+Exact Match: 0.8700
+Model Type: gpt4
+Config: virology
+Exact Match: 0.7100
+Model Type: llama
+Config: college_chemistry
+Exact Match: 0.7500
+Model Type: llama
+Config: college_mathematics
+Exact Match: 0.9900
+Model Type: llama
+Config: econometrics
+Exact Match: 0.9600
+Model Type: llama
+Config: formal_logic
+Exact Match: 0.8700
+Model Type: llama
+Config: global_facts
+Exact Match: 0.8200
+Model Type: llama
+Config: high_school_physics
+Exact Match: 0.9800
+Model Type: llama
+Config: machine_learning
+Exact Match: 0.8900
+Model Type: llama
+Config: professional_law
+Exact Match: 0.8200
+Model Type: llama
+Config: public_relations
+Exact Match: 0.9100
+Model Type: llama
+Config: virology
+Exact Match: 0.6000
+Model Type: claude
+Config: college_chemistry
+Model Type: claude
+Config: college_chemistry
+Exact Match: 0.1700
+Model Type: claude
+Config: college_mathematics
+Exact Match: 0.0800
+Model Type: claude
+Config: college_mathematics

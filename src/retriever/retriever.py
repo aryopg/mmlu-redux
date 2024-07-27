@@ -1,45 +1,46 @@
+import json
 import os
 
-from elasticsearch import Elasticsearch
+os.environ["PYSERINI_CACHE"] = "/data/cache/"
+os.environ["JAVA_TOOL_OPTIONS"] = "-Xms6400m -Xmx12800m"
+from pyserini.search.lucene import LuceneSearcher
+from pyserini.search.faiss import FaissSearcher, TctColBertQueryEncoder
 
 
-def search(query, index="wikipedia", num_docs=5):
-    """
-    Search the Elasticsearch index for the most relevant documents.
-    """
+class Retriever:
+    _instances = {}
 
-    docs = []
-    if num_docs > 0:
-        print(f"Running query: {query}")
-        es_request_body = {
-            "query": {
-                "match": {"content": query}  # Assuming documents have a "content" field
-            },
-            "size": num_docs,
-        }
+    def __new__(cls, index_type):
+        if index_type not in cls._instances:
+            cls._instances[index_type] = super(Retriever, cls).__new__(cls)
+            cls._instances[index_type]._init_searchers(index_type)
+        return cls._instances[index_type]
 
-        # Connect to Elasticsearch
-        es = Elasticsearch(
-            hosts=os.environ["ES_HOST"],
-            basic_auth=("elastic", os.environ["ES_PASSWORD"]),
-            verify_certs=False,
-            ssl_show_warn=False,
-        )
+    def _init_searchers(self, index_type):
+        self.index_type = index_type
 
-        response = es.options(request_timeout=60).search(
-            index=index, body=es_request_body
-        )
-        # Extract and return the documents
-        # docs = [f"Document {hit["_source"]["_id"]}\n{hit["_source"]["content"]}" for hit in response["hits"]["hits"]]
-        print(response["hits"]["hits"])
+        if index_type == "tct_colbert-msmarco":
+            encoder = TctColBertQueryEncoder("castorini/tct_colbert-msmarco")
+            self.searcher = FaissSearcher.from_prebuilt_index(
+                "msmarco-passage-tct_colbert-hnsw", encoder
+            )
+        elif index_type == "msmarco-v1-passage":
+            self.searcher = LuceneSearcher.from_prebuilt_index("msmarco-v1-passage")
+        elif index_type == "wikipedia-dpr":
+            self.searcher = LuceneSearcher.from_prebuilt_index("wikipedia-dpr")
+        else:
+            self.searcher = LuceneSearcher.from_prebuilt_index("enwiki-paragraphs")
 
-        def hit_to_str(hit):
-            res = hit["_source"]["content"]
-            if "filename" in hit["_source"]:
-                res = f"Document: { hit['_source']['filename']}\n{hit['_source']['content']}"
-            return res
+    def retrieve_paragraphs(self, query, num_ret=5):
+        hits = self.searcher.search(query, num_ret)
+        paragraphs = []
+        for i in range(len(hits)):
+            doc = self.searcher.doc(hits[i].docid)
+            if doc.raw()[0] == "{":
+                json_doc = json.loads(doc.raw())
+                para = json_doc["contents"]
+            else:
+                para = doc.raw()
+            paragraphs.append(para)
 
-        docs = [hit_to_str(hit) for hit in response["hits"]["hits"]]
-        print(f"Received {len(docs)} documents from index {index}")
-
-    return docs
+        return paragraphs
